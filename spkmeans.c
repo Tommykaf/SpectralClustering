@@ -19,21 +19,53 @@ static double l2norm(unsigned int dim, double *p1, double *p2) {
   return dist;
 }
 
-double* WAM(double *points, unsigned int obs_count, unsigned int dim) {
-    double* WAM = (double*) malloc(obs_count*obs_count*sizeof(double));
-    unsigned int i=0,j=0;
+double* WAM(double *points, unsigned int obsCount, unsigned int dim) {
+    double* WAM = (double*) malloc(obsCount*obsCount*sizeof(double));
+    unsigned int i,j;
 
     if (WAM == NULL) {
         assert("malloc did an oopsie");
     }
 
-    for (i = 0; i < obs_count; i++) {
+    for (i = 0; i < obsCount; i++) {
         for (j = 0; j < i; j++) {
-            WAM[i*obs_count + j] = exp(-0.5 * l2norm(points+i*dim, points+j*dim, dim));    
+            WAM[i*obsCount + j] = exp(-0.5*l2norm(points + i*dim, points + j*dim, dim));    
         }
-        WAM[i*obs_count + i] = 0;
+        WAM[i*obsCount + i] = 0;
     }
     
     return WAM;
 }
 
+double sumRow(double *matrix, unsigned int cols, unsigned int rowIndex){
+    double sum = 0;
+    unsigned int i;
+    for (i = 0; i < cols; i++) {
+        sum += matrix[rowIndex*cols + i];
+    }
+    return sum;
+    
+}
+
+double* DDG(double *WAM, unsigned int obsCount) {
+    // Diagonal matrix, so let's just set all memory to 0s
+    double* DDG = (double*) calloc(obsCount*obsCount, sizeof(double));
+    unsigned int i;
+
+    if (DDG == NULL) {
+        assert("malloc did an oopsie");
+    }
+
+    for (i = 0; i < obsCount; i++) {
+        DDG[i*obsCount + i] = sumRow(WAM, obsCount, i);
+    }
+    
+    return DDG;
+}
+
+void DHalf(double *DDG, unsigned int obsCount) {
+    unsigned int i;
+    for (i = 0; i < obsCount; i++) {
+        DDG[i*obsCount + i] = 1/sqrt(DDG[i*obsCount + i]);
+    }
+}
