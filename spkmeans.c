@@ -22,6 +22,7 @@ static double l2norm(unsigned int dim, double *p1, double *p2) {
 double* WAM(double *points, unsigned int obsCount, unsigned int dim) {
     double* WAM = (double*) malloc(obsCount*obsCount*sizeof(double));
     unsigned int i,j;
+    double tmp;
 
     if (WAM == NULL) {
         assert("malloc did an oopsie");
@@ -29,7 +30,9 @@ double* WAM(double *points, unsigned int obsCount, unsigned int dim) {
 
     for (i = 0; i < obsCount; i++) {
         for (j = 0; j < i; j++) {
-            WAM[i*obsCount + j] = exp(-0.5*l2norm(points + i*dim, points + j*dim, dim));    
+            tmp = exp(-0.5*l2norm(points + i*dim, points + j*dim, dim));    
+            WAM[i*obsCount + j] = tmp;
+            WAM[j*obsCount + i] = tmp;
         }
         WAM[i*obsCount + i] = 0;
     }
@@ -48,8 +51,7 @@ double sumRow(double *matrix, unsigned int cols, unsigned int rowIndex){
 }
 
 double* DDG(double *WAM, unsigned int obsCount) {
-    // Diagonal matrix, so let's just set all memory to 0s
-    double* DDG = (double*) calloc(obsCount*obsCount, sizeof(double));
+    double* DDG = (double*) malloc(obsCount * sizeof(double));
     unsigned int i;
 
     if (DDG == NULL) {
@@ -57,7 +59,7 @@ double* DDG(double *WAM, unsigned int obsCount) {
     }
 
     for (i = 0; i < obsCount; i++) {
-        DDG[i*obsCount + i] = sumRow(WAM, obsCount, i);
+        DDG[i] = sumRow(WAM, obsCount, i);
     }
     
     return DDG;
@@ -66,6 +68,35 @@ double* DDG(double *WAM, unsigned int obsCount) {
 void DHalf(double *DDG, unsigned int obsCount) {
     unsigned int i;
     for (i = 0; i < obsCount; i++) {
-        DDG[i*obsCount + i] = 1/sqrt(DDG[i*obsCount + i]);
+        DDG[i] = 1/sqrt(DDG[i]);
     }
+}
+
+double* 
+prettyDDG(double* DDG, unsigned int obsCount){
+    double *pretty = calloc(obsCount*obsCount, sizeof(double));
+    unsigned int i;
+
+    for(i = 0; i < obsCount; i++)
+    {
+        pretty[i * obsCount + i] = DDG[i];
+    }
+    return pretty;
+}
+
+double* // HEZY
+laplacian(double* WAM, double* DHalf, unsigned int obsCount){   
+    double* LNorm = (double* ) malloc(obsCount*obsCount*sizeof(double));
+    unsigned int i,j;
+    double tmp;
+
+    for(i = 0; i < obsCount; i++){
+        for(j = 0; j < i; j++){
+            tmp = -(DHalf[i] * WAM[i * obsCount + j] * DHalf[j]);
+            LNorm[i * obsCount + j] = tmp; 
+            LNorm[j * obsCount + i] = tmp;
+        }
+        LNorm[i * obsCount + i] = 1.0;
+    }
+    return LNorm;
 }
