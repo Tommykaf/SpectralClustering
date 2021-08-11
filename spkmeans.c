@@ -1,12 +1,6 @@
 // בס"ד
 
-// אם ירצה השם
-#define sqr(x) ((x)*(x))
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <spkmeans.h>
 
 static double l2norm(unsigned int dim, double *p1, double *p2) {
   double dist = 0;
@@ -41,7 +35,7 @@ double* WAM(double *points, unsigned int obsCount, unsigned int dim) {
     return WAM;
 }
 
-double sumRow(double *matrix, unsigned int cols, unsigned int rowIndex){
+double sumRow(double *matrix, unsigned int cols, unsigned int rowIndex) {
     double sum = 0;
     unsigned int i;
     for (i = 0; i < cols; i++) {
@@ -73,8 +67,7 @@ void DHalf(double *DDG, unsigned int obsCount) {
     }
 }
 
-double* 
-prettyDDG(double* DDG, unsigned int obsCount){
+double* prettyDDG(double* DDG, unsigned int obsCount) {
     double *pretty = calloc(obsCount*obsCount, sizeof(double));
     unsigned int i;
 
@@ -85,8 +78,7 @@ prettyDDG(double* DDG, unsigned int obsCount){
     return pretty;
 }
 
-double* // HEZY
-laplacian(double* WAM, double* DHalf, unsigned int obsCount){   
+double* laplacian(double* WAM, double* DHalf, unsigned int obsCount){   
     double* LNorm = (double* ) malloc(obsCount*obsCount*sizeof(double));
     unsigned int i,j;
     double tmp;
@@ -103,8 +95,7 @@ laplacian(double* WAM, double* DHalf, unsigned int obsCount){
 }
 
 
-void 
-printMatrix(double* matrix, unsigned int rows, unsigned int cols){
+void printMatrix(double* matrix, unsigned int rows, unsigned int cols){
     unsigned int i, j;
     for (i = 0; i < rows; i++){
         for (j = 0; j < cols; j++){
