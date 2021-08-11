@@ -95,6 +95,55 @@ double* laplacian(double* WAM, double* DHalf, unsigned int obsCount){
 }
 
 
+void
+multiplyMatrices(double* A, double* B, double* C, unsigned int m, unsigned int k, unsigned int n){
+    // A = Mxk, B = KxN => C=MxN
+    unsigned int i, j, l;
+    for (i = 0; i < m; i++){
+        for (j = 0; j < n; j++){
+            for (l = 0; l < k; l++){
+                C[i * n + j] += A[i * k + l] * B[l * n + j];
+            }
+        }
+    }
+}
+
+int 
+isDiagonal(double* matrix, unsigned int rows){
+    return 0;
+}
+
+void 
+generateRot(double* matrix, unsigned int rows, double* p, double* pt){
+
+}
+
+void
+Jacobi(double* matrix, unsigned int rows){
+    double* V = (double*) calloc(rows * rows, sizeof(double));
+    double *P = (double*) calloc(rows * rows, sizeof(double));
+    double *Pt = (double*) calloc(rows * rows, sizeof(double));
+    double *tmp= (double*) calloc(rows * rows, sizeof(double));
+    unsigned int i;
+
+    for (i = 0; i < rows; i++){
+        V[i * rows + i] = 1.0;
+    }
+
+    while(!isDiagonal(matrix, rows)){
+        generateRot(matrix, rows, P, Pt);
+        multiplyMatrices(Pt, matrix,tmp, rows, rows, rows); // Pt * matrix => temp
+        multiplyMatrices(tmp, P, matrix, rows, rows, rows); // pt* matrix * p => matrix
+        multiplyMatrices(V, P, tmp, rows, rows, rows);      // p1 * p2 * ... = V * P_n+1 => tmp
+        memcpy(V, tmp, rows * rows * sizeof(double));       // tmp => V
+    }
+    free(P);
+    free(Pt);
+}
+
+
+
+
 void printMatrix(double* matrix, unsigned int rows, unsigned int cols){
     unsigned int i, j;
     for (i = 0; i < rows; i++){
