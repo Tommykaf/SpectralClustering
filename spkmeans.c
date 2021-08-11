@@ -1,5 +1,6 @@
 // בס"ד
 
+// אם ירצה השם
 #define sqr(x) ((x)*(x))
 
 #include <math.h>
@@ -99,4 +100,19 @@ laplacian(double* WAM, double* DHalf, unsigned int obsCount){
         LNorm[i * obsCount + i] = 1.0;
     }
     return LNorm;
+}
+
+
+void 
+printMatrix(double* matrix, unsigned int rows, unsigned int cols){
+    unsigned int i, j;
+    for (i = 0; i < rows; i++){
+        for (j = 0; j < cols; j++){
+            printf("%.4f", matrix[i*cols + j]);
+            if (j < cols - 1)
+                printf(",");
+        }
+        if (i + 1 < rows) // if not last row - tommy 2021 
+            printf("\n");
+    }
 }
