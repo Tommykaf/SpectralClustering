@@ -6,7 +6,7 @@
 #include <assert.h>
 
 #define sqr(x) ((x)*(x))
-
+#define EPSILON 0.001
 
 
 static double 

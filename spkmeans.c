@@ -113,33 +113,94 @@ isDiagonal(double* matrix, unsigned int rows){
     return 0;
 }
 
-void 
-generateRot(double* matrix, unsigned int rows, double* p, double* pt){
-
+void
+maxItem(double* matrix, int rows, int* row, int* col) {
+    // This function places the bigget absolute value item i at indices[0] and his j at indices[1]
+    // TODO make it not O(n^2)
+    unsigned int i, j, currI = 1, currJ = 0;
+    double tmp, currMax = abs(matrix[currJ + currI*rows]);
+    for(i = 1; i < rows; i++){
+        for(j = 0; j < i; j++){
+            if ((tmp = abs(matrix[j + i*rows])) > currMax) {
+                currI = i;
+                currJ = j;
+                currMax = tmp;
+            }
+        }
+    }
+    *row = currI;
+    *col = currJ;
 }
 
 void
-Jacobi(double* matrix, unsigned int rows){
+Jacobi(double* matrix, unsigned int rows, double old){
     double* V = (double*) calloc(rows * rows, sizeof(double));
-    double *P = (double*) calloc(rows * rows, sizeof(double));
-    double *Pt = (double*) calloc(rows * rows, sizeof(double));
-    double *tmp= (double*) calloc(rows * rows, sizeof(double));
-    unsigned int i;
+    unsigned int i, j, r, count;
+    int indices[2];
+    double theta, s, t, c, tmp;
+    double arj, ari, aii, ajj, aij;
+    double diff;
 
     for (i = 0; i < rows; i++){
         V[i * rows + i] = 1.0;
     }
 
-    while(!isDiagonal(matrix, rows)){
-        generateRot(matrix, rows, P, Pt);
-        multiplyMatrices(Pt, matrix,tmp, rows, rows, rows); // Pt * matrix => temp
-        multiplyMatrices(tmp, P, matrix, rows, rows, rows); // pt* matrix * p => matrix
-        multiplyMatrices(V, P, tmp, rows, rows, rows);      // p1 * p2 * ... = V * P_n+1 => tmp
-        memcpy(V, tmp, rows * rows * sizeof(double));       // tmp => V
+    while(diff < EPSILON && count++ < 100){
+        diff = 0;
+        maxItem(matrix, rows, &i, &j);
+        aij = matrix[i*rows + j];
+        aii = matrix[i*(rows+1)];
+        ajj = matrix[j*(rows+1)];
+        theta = (ajj - aii) / (2 * aij);
+        t = (theta >= 0 ? 1 : -1) / (abs(theta) + sqrt(sqr(theta) + 1));
+        c = 1 / sqrt(sqr(t) + 1);
+        s = t * c;
+
+        for(r = 0; r < rows; r++){
+            if (r != j && r != i) {
+                arj = matrix[r*rows + j];
+                ari = matrix[r*rows + i];
+                matrix[r*rows+i] = c*ari - s*arj;
+                matrix[i*rows+r] = c*ari - s*arj;
+                matrix[r*rows+j] = c*arj + s*ari;
+                matrix[j*rows+r] = c*arj + s*ari;
+                diff += 2 * (sqr(arj) + sqr(ari));
+                diff -= 2 * (sqr(matrix[r*rows+i]) + sqr(matrix[r*rows+j]));
+            }
+            tmp = V[r*rows + i];
+            V[r*rows + i] = tmp - s*(V[r*rows + j] + s*tmp/(1 + c));
+            V[r*rows + j] = V[r*rows + j] + s*(tmp - s*V[r*rows + j]/(1 + c));
+        }
+        matrix[i*(rows + 1)] = sqr(c)*aii + sqr(s)*ajj - 2*c*s*aij;
+        matrix[j*(rows + 1)] = sqr(s)*aii + sqr(c)*ajj + 2*c*s*aij;
+        matrix[i*rows + j] = 0;
+
+        diff -= (sqr(aii) + sqr(ajj)); 
+        diff += sqr(matrix[i*(rows + 1)]) + sqr(matrix[j*(rows + 1)]);
     }
-    free(P);
-    free(Pt);
 }
+
+int
+argmax(double* eigenArray,int count) {
+    unsigned int i, k;
+    double delta, tmp;
+    for(i = 0; i < count / 2; i++){
+        if ((tmp = abs(eigenArray[i] - eigenArray[i + 1])) > delta){
+            delta = tmp;
+            k = i;
+        }
+    }
+    return k;
+}
+
+
+
+
+
+
+
+
+
 
 
 
