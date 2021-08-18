@@ -22,6 +22,9 @@ sumRow(double *matrix, uint32_t cols, uint32_t rowIndex);
 double* 
 DDG(double *WAM, uint32_t obsCount);
 
+// double 
+// invsqrtQuake( double number );
+
 void 
 DHalf(double *DDG, uint32_t obsCount);
 

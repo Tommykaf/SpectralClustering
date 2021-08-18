@@ -70,11 +70,26 @@ double *DDG(double *WAM, uint32_t obsCount)
   return DDG;
 }
 
+// double invsqrtQuake( double number )
+//   {
+//       double y = number;
+//       double x2 = y * 0.5;
+//       int64_t i = *(int64_t *) &y;
+//       // The magic number is for doubles is from https://cs.uwaterloo.ca/~m32rober/rsqrt.pdf
+//       i = 0x5fe6eb50c7b537a9 - (i >> 1);
+//       y = *(double *) &i;
+//       y = y * (1.5 - (x2 * y * y));   // 1st iteration
+//       //      y  = y * ( 1.5 - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+//       return y;
+//   }
+
+
 void DHalf(double *DDG, uint32_t obsCount)
 {
   uint32_t i;
   for (i = 0; i < obsCount; i++)
   {
+    //DDG[i] = 1 / invsqrtQuake(DDG[i]);
     DDG[i] = 1 / sqrt(DDG[i]);
   }
 }
