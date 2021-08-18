@@ -194,6 +194,102 @@ argmax(double* eigenArray,int count) {
 }
 
 
+// OLD CODE
+static int 
+compareArrays(double* a, double* b, unsigned int n) 
+{
+  unsigned int i = 0;
+  for(i = 0; i < n; i++) {
+    if (a[i] != b[i]) return 0;
+
+  }
+  return 1;
+}
+
+static void 
+sumPoints(unsigned int dim, double *p1, double *p2)
+{
+  unsigned int i;
+  for (i = 0; i < dim; i++){
+    p1[i] += p2[i];
+  }
+}
+
+static void 
+normalize(unsigned int dim, double * p, unsigned int factor)
+{
+  unsigned int i;
+  for (i = 0; i < dim; i++){
+    p[i] /= factor;
+    
+  }
+}
+
+static int 
+closestCluster(unsigned int dim, double * point, double* centers, unsigned int clusterCount)
+{
+  double min = 0, dist = 0;
+  unsigned int minIndex = 0, firstRun = 1;
+  unsigned int i;
+  for (i = 0; i < clusterCount; i++){
+    dist = calcDistance(dim, point, &(centers[i * dim]));
+    if ((dist < min) || firstRun) {
+      min = dist;
+      minIndex = i;
+      firstRun = 0;
+    }
+  }
+  return minIndex;
+}
+
+static void 
+calcNewCenters(double* newCenters, unsigned int* count, double* datapoints, unsigned int dim,
+               unsigned int datasetSize, unsigned int clusterCount, double* centers)
+{
+  unsigned int cluster;
+  unsigned int i;
+  unsigned int j;
+  
+  memset(newCenters,0,sizeof(double)*dim*clusterCount);
+  memset(count,0,sizeof(int)*clusterCount);
+  
+  for(j = 0; j < datasetSize; j++) {
+    cluster = closestCluster(dim, &(datapoints[j * dim]), centers, clusterCount);
+    sumPoints(dim,&(newCenters[cluster * dim]),&(datapoints[j * dim]));
+    count[cluster]++;
+  }
+  
+  for (i = 0; i < clusterCount; i++) {
+    normalize(dim,&(newCenters[i * dim]),count[i]);
+  }
+}
+
+static double*
+fit(double* centroids, double* datapoints, unsigned int datasetSize,
+         unsigned int dim, unsigned int clusterCount, unsigned int MAX_ITER)
+{
+  unsigned int i;
+
+  double* newCentroids = calloc(clusterCount, dim * sizeof(double));
+  unsigned int* count = calloc(clusterCount, sizeof(int));
+  
+  for(i = 0; i < MAX_ITER; i++){
+    calcNewCenters(newCentroids, count, datapoints, dim, datasetSize, clusterCount, centroids);
+    if (compareArrays(centroids, newCentroids, clusterCount * dim)){
+      break;
+    }
+
+    memcpy(centroids, newCentroids, sizeof(double)*dim*clusterCount);
+  }
+
+  free(newCentroids);
+  free(count);
+
+  return centroids;
+}
+
+
+
 
 
 
