@@ -1,54 +1,53 @@
-// אם ירצה השם
+/* אם ירצה השם */
 
 #include <math.h>
 #include <stdio.h>
 #include <assert.h>
-#include <heap.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include "heap.h"
 
 #define sqr(x) ((x)*(x))
 #define EPSILON 0.001
 #define MAX_JACOBI_ITER 100
 
-// typedef unsigned int uint;
 
 static double 
 l2norm(uint32_t dim, double *p1, double *p2);
 
-void
+static void
 WAM(double *points, uint32_t obsCount, uint32_t dim, double *res);
 
 double 
 sumRow(double *matrix, uint32_t cols, uint32_t rowIndex);
 
-void 
+static void 
 DDG(double *WAM, uint32_t obsCount, double *res);
 
-// double 
-// invsqrtQuake( double number );
-
+/* double 
+    invsqrtQuake( double number );
+*/
 void 
 DHalf(double *DDG, uint32_t obsCount);
 
-double* 
+static double* 
 prettyDDG(double* DDG, uint32_t obsCount);
 
-void // HEZY 
+static void /* HEZY */
 laplacian(double* WAM, double* DHalf, uint32_t obsCount, double *LNorm);
 
 void 
-multiplyMatrices(double *A, double *B, double *C,
-                 uint32_t m, uint32_t k, uint32_t n);
+maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col);
 
-void 
-maxItem(double *matrix, int rows, int *row, int *col);
+static void 
+Jacobi(double *matrix, uint32_t rows, double *V);
 
-void 
-Jacobi(double *matrix, uint32_t rows, double old);
+uint32_t 
+argmax(double *eigenArray, uint32_t count);
 
-int 
-argmax(double *eigenArray, int count);
+void buildU(double *eigenArray, uint32_t count,
+            double* V, double* ret);
 
 static void 
 sumPoints(uint32_t dim, double *p1, double *p2);
@@ -56,7 +55,7 @@ sumPoints(uint32_t dim, double *p1, double *p2);
 static void
 normalize(uint32_t dim, double *p, uint32_t factor);
 
-static int 
+static uint32_t 
 closestCluster(uint32_t dim, double *point,
                double *centers, uint32_t clusterCount);
 

@@ -3,8 +3,8 @@
 
 typedef struct _heapElement
 {
-    uint32_t index; // in original list
-    double value;   // the value to sort by
+    uint32_t index; /* in original list */
+    double value;   /* the value to sort by */
 } element;
 
 uint32_t leftChild(uint32_t);
