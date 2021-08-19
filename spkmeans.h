@@ -2,25 +2,28 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <heap.h>
+#include <stdlib.h>
 #include <stdint.h>
 
 #define sqr(x) ((x)*(x))
 #define EPSILON 0.001
+#define MAX_JACOBI_ITER 100
 
+// typedef unsigned int uint;
 
 static double 
 l2norm(uint32_t dim, double *p1, double *p2);
 
-double*
-WAM(double *points, uint32_t obsCount, uint32_t dim);
+void
+WAM(double *points, uint32_t obsCount, uint32_t dim, double *res);
 
 double 
 sumRow(double *matrix, uint32_t cols, uint32_t rowIndex);
 
-double* 
-DDG(double *WAM, uint32_t obsCount);
+void 
+DDG(double *WAM, uint32_t obsCount, double *res);
 
 // double 
 // invsqrtQuake( double number );
@@ -31,8 +34,8 @@ DHalf(double *DDG, uint32_t obsCount);
 double* 
 prettyDDG(double* DDG, uint32_t obsCount);
 
-double* // HEZY 
-laplacian(double* WAM, double* DHalf, uint32_t obsCount);
+void // HEZY 
+laplacian(double* WAM, double* DHalf, uint32_t obsCount, double *LNorm);
 
 void 
 multiplyMatrices(double *A, double *B, double *C,
