@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <stdio.h>
 
 typedef struct _heapElement
 {
@@ -12,6 +14,6 @@ uint32_t rightChild(uint32_t);
 
 void swap(element*, element*);
 
-void heapify(element, uint32_t, uint32_t);
+void heapify(element*, uint32_t, uint32_t);
 
 void heapSort(double* vals, uint32_t len, uint32_t *ret, uint32_t k);

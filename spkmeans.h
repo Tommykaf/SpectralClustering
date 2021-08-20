@@ -41,7 +41,7 @@ void
 maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col);
 
 static void 
-Jacobi(double *matrix, uint32_t rows, double *V);
+Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray);
 
 uint32_t 
 argmax(double *eigenArray, uint32_t count);
@@ -56,7 +56,7 @@ static void
 normalize(uint32_t dim, double *p, uint32_t factor);
 
 static uint32_t 
-closestCluster(uint32_t dim, double *point,
+closestCluster(uint32_t dim, double *point, 
                double *centers, uint32_t clusterCount);
 
 static void 
@@ -66,7 +66,7 @@ calcNewCenters(double *newCenters, uint32_t *count,
                double *centers);
 
 static double *
-fit(double *centroids, double *datapoints,
+kmeansFit(double *centroids, double *datapoints,
     uint32_t datasetSize,uint32_t dim,
     uint32_t clusterCount, uint32_t MAX_ITER);
 

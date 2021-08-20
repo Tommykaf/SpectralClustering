@@ -131,7 +131,7 @@ void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
 }
 
 /* Assumes matrix is symetric, and V is full of zeros */
-static void Jacobi(double *matrix, uint32_t rows, double *V)
+static void Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray)
 {
   uint32_t i, j, r, count;
   double theta, s, t, c, tmp;
@@ -185,6 +185,8 @@ static void Jacobi(double *matrix, uint32_t rows, double *V)
     diff -= (sqr(aii) + sqr(ajj));
     diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
   }
+
+
 }
 
 uint32_t argmax(double *eigenArray, uint32_t count)
@@ -285,7 +287,7 @@ static void calcNewCenters(double *newCenters, uint32_t *count, double *datapoin
   }
 }
 
-static double *fit(double *centroids, double *datapoints, uint32_t datasetSize,
+static double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
     uint32_t dim, uint32_t clusterCount, uint32_t MAX_ITER)
 {
   uint32_t i;
