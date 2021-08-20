@@ -298,6 +298,18 @@ static PyMethodDef capiMethods[] = {
      (PyCFunction)py_WAM,
      METH_VARARGS,
      PyDoc_STR("A function used to calculate the WAM from a set of observations")},
+    {"DDG",
+     (PyCFunction)py_DDG,
+     METH_VARARGS,
+     PyDoc_STR("A function used to calculate the DDG from a set of observations")},
+    {"lNorm",
+     (PyCFunction)py_lNorm,
+     METH_VARARGS,
+     PyDoc_STR("A function used to calculate the lNorm of the WAM from a set of observations")},
+    {"Jacobi",
+     (PyCFunction)py_jacobi,
+     METH_VARARGS,
+     PyDoc_STR("A function used to calculate the eigen values and vectors of a given matrix")},
     {NULL, NULL, 0, NULL}};
 
 /* This initiates the module using the above definitions. */
