@@ -288,6 +288,58 @@ static PyObject *py_jacobi(PyObject *self, PyObject *args)
     return Py_BuildValue("OO",eigenArray,V);
 }
 
+static PyObject *py_prepate_data(PyObject *self, PyObject *args)
+{
+    uint32_t count;
+    uint32_t dim;
+    npy_intp dimensions[2];
+    double *datapoints_c;
+    matrix *res_c;
+    PyObject *input_datapoints;
+    PyArrayObject *res;
+    PyArrayObject *datapoints;
+    npy_intp i = 0, j = 0;
+
+    if (!PyArg_ParseTuple(args, "OII:wam_wrapper", &input_datapoints, &count, &dim))
+    {
+        return NULL;
+    }
+
+    datapoints_c = (double *) calloc(count, dim * sizeof(double));
+
+    assert(datapoints_c != NULL);
+
+
+    datapoints = (PyArrayObject *)PyArray_ContiguousFromObject(input_datapoints, NPY_DOUBLE, 2, 2);
+
+    if ((datapoints == NULL))
+    {
+        return NULL;
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            datapoints_c[((int)i) * dim + (int)j] = *(double *)PyArray_GETPTR2(datapoints, i, j);
+        }
+    }
+
+    res_c = prepareData(datapoints_c, count, dim);
+
+    dimensions[0] = res_c->rows;
+    dimensions[1] = res_c->cols;
+
+    res = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_DOUBLE);
+    memcpy(PyArray_DATA(res), res_c->values, sizeof(double) * res_c->rows * res_c->cols);
+
+    Py_DECREF(datapoints);
+    free(datapoints_c);
+    free(res_c->values);
+    free(res_c);
+
+    return (PyObject *)res;
+}
 
 static PyMethodDef capiMethods[] = {
     {"fit",
@@ -306,10 +358,14 @@ static PyMethodDef capiMethods[] = {
      (PyCFunction)py_lNorm,
      METH_VARARGS,
      PyDoc_STR("A function used to calculate the lNorm of the WAM from a set of observations")},
-    {"Jacobi",
+    {"jacobi",
      (PyCFunction)py_jacobi,
      METH_VARARGS,
      PyDoc_STR("A function used to calculate the eigen values and vectors of a given matrix")},
+    {"prepateData",
+     (PyCFunction)py_prepate_data,
+     METH_VARARGS,
+     PyDoc_STR("A function used to prepare data from set of observations")},
     {NULL, NULL, 0, NULL}};
 
 /* This initiates the module using the above definitions. */

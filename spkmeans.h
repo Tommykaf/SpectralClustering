@@ -12,6 +12,11 @@
 #define EPSILON 0.001
 #define MAX_JACOBI_ITER 100
 
+typedef struct _matrix {
+    double* values;
+    uint32_t rows;
+    uint32_t cols;
+} matrix;
 
 static double 
 l2norm(uint32_t dim, double *p1, double *p2);
@@ -43,11 +48,15 @@ maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col);
 static void 
 Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray);
 
-uint32_t 
+static uint32_t 
 argmax(double *eigenArray, uint32_t count);
 
-void buildU(double *eigenArray, uint32_t count,
-            double* V, double* ret);
+static void 
+buildU(double *eigenArray, uint32_t count,
+            uint32_t k, double* V, matrix* ret);
+
+static matrix*
+prepareData(double *points, uint32_t obsCount, uint32_t dim);
 
 static void 
 sumPoints(uint32_t dim, double *p1, double *p2);

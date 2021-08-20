@@ -185,11 +185,12 @@ static void Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray)
     diff -= (sqr(aii) + sqr(ajj));
     diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
   }
-
-
+  for(r = 0; r < rows; r++){
+    eigenArray[r] = matrix[r*(rows + 1)];
+  }
 }
 
-uint32_t argmax(double *eigenArray, uint32_t count)
+static uint32_t argmax(double *eigenArray, uint32_t count)
 {
   uint32_t i, k;
   double delta, tmp;
@@ -205,21 +206,19 @@ uint32_t argmax(double *eigenArray, uint32_t count)
 }
 
 /* build Eigenvector matrix, ret can't be initialized */
-void buildU(double *eigenArray, uint32_t count, double* V, double* ret){
-  uint32_t k = argmax(eigenArray, count);
+static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
-  ret = malloc(sizeof(double) * k * count); /* n by k */
   
   assert(indices != NULL);
-  assert(ret != NULL);
   
   heapSort(eigenArray, count, indices ,k);
   /* indices now contains the k first eigenValues indices */
-
+  ret->rows = count;
+  ret->cols = k;
   for(i = 0; i < k; i++){
     for(j = 0; j < count; j++){
-      ret[j * k + i] = V[indices[i] * count + j];
+      ret->values[j * k + i] = V[indices[i] * count + j];
       /* V was calculted transposed => V[i,j] is now V[j,i]
       equivlent to ret[j*k + i] = V[j*count + indices[i]] if V wasn't rotated
       should save us some cache misses $P */
@@ -227,6 +226,36 @@ void buildU(double *eigenArray, uint32_t count, double* V, double* ret){
   }
 }
 
+static matrix *prepareData(double *points, uint32_t obsCount, uint32_t dim){
+  double *wam = malloc(sqr(obsCount) * sizeof(double));
+  double *D = malloc(obsCount * sizeof(double));
+  double *LNorm = malloc(sqr(obsCount) * sizeof(double));
+  double *V = malloc(sqr(obsCount) * sizeof(double));
+  double *eigenArray = malloc(obsCount * sizeof(double));
+  uint32_t k;
+  matrix *DATA = malloc(sizeof(matrix));
+  /* wam */
+  WAM(points, obsCount, dim, wam);
+  /* ddg + dhalf */
+  DDG(wam, obsCount, D);
+  DHalf(D,obsCount);
+  /*lnorm */
+  laplacian(wam, D, obsCount, LNorm);
+  /* jacob */
+  Jacobi(LNorm, obsCount, V, eigenArray);
+  /* build u */
+  k = argmax(eigenArray, obsCount);
+  DATA->values = malloc(sizeof(double) * k * obsCount); /* n by k */
+  buildU(eigenArray, obsCount, k, V, DATA);
+  
+  free(wam);
+  free(D);
+  free(LNorm);
+  free(eigenArray);
+  free(V);
+
+  return DATA;
+}
 
 static void sumPoints(uint32_t dim, double *p1, double *p2)
 {
@@ -312,7 +341,8 @@ static double *kmeansFit(double *centroids, double *datapoints, uint32_t dataset
   return centroids;
 }
 
-static void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
+
+void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
 {
   uint32_t i, j;
   for (i = 0; i < rows; i++)

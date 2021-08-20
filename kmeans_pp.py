@@ -5,9 +5,10 @@ import sys
 import spkmeans
 np.random.seed(0)
 
-def init_data(file1: str, file2: str):
-    return pd.read_csv(file1, index_col=0, header=None).join(
-        pd.read_csv(file2, index_col=0, header=None), how="inner", lsuffix="AHUNA",sort=True).to_numpy()
+def init_data(src: str):
+    datapoints = pd.read_csv(src, index_col=0, header=None).to_numpy()
+    return spkmeans.prepareData(datapoints, datapoints.shape[0], datapoints.shape[1]) # datapoints, count, dim
+
 
 def algo(data, k):
     centeroids = [np.random.choice(data.shape[0])]
@@ -22,11 +23,9 @@ if __name__ == "__main__":
     assert len(sys.argv) >= 4
 
     K = int(sys.argv[1])
-    MAX_ITER = 300 if len(sys.argv) == 4 else int(sys.argv[2])
-    file1 = sys.argv[-2]
-    file2 = sys.argv[-1]
+    src = sys.argv[-2]
 
-    data = init_data(file1, file2)
+    data = init_data(src)
     assert K <= data.shape[0]
     centers = algo(data,K)
 
