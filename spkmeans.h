@@ -6,17 +6,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+
 #include "heap.h"
+
+#include "matrix.h"
+
 
 #define sqr(x) ((x)*(x))
 #define EPSILON 0.001
 #define MAX_JACOBI_ITER 100
 
-typedef struct _matrix {
-    double* values;
-    uint32_t rows;
-    uint32_t cols;
-} matrix;
 
 static double 
 l2norm(uint32_t dim, double *p1, double *p2);
