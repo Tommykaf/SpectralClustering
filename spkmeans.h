@@ -9,6 +9,7 @@
 
 
 #include "heap.h"
+#include "parsematrix.h"
 
 #include "matrix.h"
 
