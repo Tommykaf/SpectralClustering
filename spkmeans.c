@@ -16,6 +16,14 @@ static double l2norm(uint32_t dim, double *p1, double *p2)
   return dist;
 }
 
+/*
+Calculates the WAM of the graph of the given <points>, places it in res
+args:
+  points - array of the observations
+  obsCount - number of observations
+  dim - dimention of each point
+  res - double square matrix of dimension obsCount 
+*/
 static void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
 {
   uint32_t i, j;
@@ -33,6 +41,13 @@ static void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
   }
 }
 
+/*
+Sum <cols> elements in a given <rowIndex> from <matrix> and returns the sum
+args:
+  matrix - the matrix to sum from
+  cols - the number of cols in the matrix
+  rowIndex - the row index to sum
+*/
 double sumRow(double *matrix, uint32_t cols, uint32_t rowIndex)
 {
   double sum = 0;
@@ -44,6 +59,13 @@ double sumRow(double *matrix, uint32_t cols, uint32_t rowIndex)
   return sum;
 }
 
+/*
+Calculates the diagonal of the DDG of the given WAM, places it in res
+args:
+  WAM - double matrix of dimension obsCount 
+  obsCount - number of observations
+  res - double array of obsCount length
+*/
 static void DDG(double *WAM, uint32_t obsCount, double *res)
 {
   uint32_t i;
@@ -54,20 +76,12 @@ static void DDG(double *WAM, uint32_t obsCount, double *res)
   }
 }
 
-/* double invsqrtQuake( double number )
-   {
-       double y = number;
-       double x2 = y * 0.5;
-       int64_t i = *(int64_t *) &y;
-       //The magic number is for doubles is from https://cs.uwaterloo.ca/~m32rober/rsqrt.pdf
-       i = 0x5fe6eb50c7b537a9 - (i >> 1);
-       y = *(double *) &i;
-       y = y * (1.5 - (x2 * y * y));   // 1st iteration
-       //      y  = y * ( 1.5 - ( x2 * y * y ) );   // 2nd iteration, this can be removed
-       return y;
-   }
+/*
+Creates the Dhalf based on DDG and places it in DDG
+args:
+  obsCount - number of observations
+  DDG - double array of obsCount length
 */
-
 void DHalf(double *DDG, uint32_t obsCount)
 {
   uint32_t i;
@@ -78,6 +92,12 @@ void DHalf(double *DDG, uint32_t obsCount)
   }
 }
 
+/*
+creates a nice matrix represantion of a DDG/DHALF
+args:
+  DDG - the diagonal values array
+  obsCount - number of values in the array
+*/
 static double *prettyDDG(double *DDG, uint32_t obsCount)
 {
   double *pretty = calloc(obsCount * obsCount, sizeof(double));
@@ -90,6 +110,15 @@ static double *prettyDDG(double *DDG, uint32_t obsCount)
   return pretty;
 }
 
+
+/*
+calculates the laplacian from WAM and DDG/DHALF, places it into LNorm
+args:
+  DHalf - the Dhalf diagonal values array
+  WAM - the WAM matrix
+  obsCount - number of values in the array
+  LNorm - The returned laplacian matrix
+*/
 static void laplacian(double *WAM, double *DHalf, uint32_t obsCount, double *LNorm)
 {
   uint32_t i, j;
@@ -108,10 +137,15 @@ static void laplacian(double *WAM, double *DHalf, uint32_t obsCount, double *LNo
 }
 
 
+/* 
+Find the max item in the upper triangle Matrix and return his indices
+args:
+  matrix - the square matrix of dim rows to search in
+  row - the max item row index - return value 0
+  col - the max item col index - return value 2
+*/
 void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
 {
-  /* This function places the bigget absolute value item i at indices[0] and his j at indices[1]
-  TODO make it not O(n^2) */
   uint32_t i, j, currI = 1, currJ = 0;
   double tmp, currMax = fabs(matrix[currJ + currI * rows]);
   for (i = 1; i < rows; i++)
@@ -206,7 +240,7 @@ static uint32_t argmax(double *eigenArray, uint32_t count)
 }
 
 /* build Eigenvector matrix, ret can't be initialized */
-static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix *ret){
+static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
   
@@ -226,14 +260,14 @@ static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, ma
   }
 }
 
-static matrix *prepareData(double *points, uint32_t obsCount, uint32_t dim){
+static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
   double *wam = malloc(sqr(obsCount) * sizeof(double));
   double *D = malloc(obsCount * sizeof(double));
   double *LNorm = malloc(sqr(obsCount) * sizeof(double));
   double *V = malloc(sqr(obsCount) * sizeof(double));
   double *eigenArray = malloc(obsCount * sizeof(double));
   uint32_t k;
-  matrix *DATA = malloc(sizeof(matrix));
+  matrix_t *DATA = malloc(sizeof(matrix_t));
   /* wam */
   WAM(points, obsCount, dim, wam);
   /* ddg + dhalf */

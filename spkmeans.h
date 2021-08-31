@@ -12,11 +12,11 @@
 #define EPSILON 0.001
 #define MAX_JACOBI_ITER 100
 
-typedef struct _matrix {
+typedef struct matrix {
     double* values;
     uint32_t rows;
     uint32_t cols;
-} matrix;
+} matrix_t;
 
 static double 
 l2norm(uint32_t dim, double *p1, double *p2);
@@ -30,9 +30,6 @@ sumRow(double *matrix, uint32_t cols, uint32_t rowIndex);
 static void 
 DDG(double *WAM, uint32_t obsCount, double *res);
 
-/* double 
-    invsqrtQuake( double number );
-*/
 void 
 DHalf(double *DDG, uint32_t obsCount);
 
@@ -53,9 +50,9 @@ argmax(double *eigenArray, uint32_t count);
 
 static void 
 buildU(double *eigenArray, uint32_t count,
-            uint32_t k, double* V, matrix* ret);
+            uint32_t k, double* V, matrix_t* ret);
 
-static matrix*
+static matrix_t*
 prepareData(double *points, uint32_t obsCount, uint32_t dim);
 
 static void 
