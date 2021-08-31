@@ -165,7 +165,7 @@ void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
 }
 
 /* Assumes matrix is symetric, and V is full of zeros */
-static void Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray)
+static void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
 {
   uint32_t i, j, r, count;
   double theta, s, t, c, tmp;
@@ -219,8 +219,9 @@ static void Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray)
     diff -= (sqr(aii) + sqr(ajj));
     diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
   }
-  for(r = 0; r < rows; r++){
-    eigenArray[r] = matrix[r*(rows + 1)];
+  for (r = 0; r < rows; r++)
+  {
+    eigenArray[r] = matrix[r * (rows + 1)];
   }
 }
 
@@ -243,15 +244,17 @@ static uint32_t argmax(double *eigenArray, uint32_t count)
 static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
-  
+
   assert(indices != NULL);
-  
-  heapSort(eigenArray, count, indices ,k);
+
+  heapSort(eigenArray, count, indices, k);
   /* indices now contains the k first eigenValues indices */
   ret->rows = count;
   ret->cols = k;
-  for(i = 0; i < k; i++){
-    for(j = 0; j < count; j++){
+  for (i = 0; i < k; i++)
+  {
+    for (j = 0; j < count; j++)
+    {
       ret->values[j * k + i] = V[indices[i] * count + j];
       /* V was calculted transposed => V[i,j] is now V[j,i]
       equivlent to ret[j*k + i] = V[j*count + indices[i]] if V wasn't rotated
@@ -272,7 +275,7 @@ static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
   WAM(points, obsCount, dim, wam);
   /* ddg + dhalf */
   DDG(wam, obsCount, D);
-  DHalf(D,obsCount);
+  DHalf(D, obsCount);
   /*lnorm */
   laplacian(wam, D, obsCount, LNorm);
   /* jacob */
@@ -281,7 +284,7 @@ static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
   k = argmax(eigenArray, obsCount);
   DATA->values = malloc(sizeof(double) * k * obsCount); /* n by k */
   buildU(eigenArray, obsCount, k, V, DATA);
-  
+
   free(wam);
   free(D);
   free(LNorm);
@@ -328,7 +331,7 @@ static uint32_t closestCluster(uint32_t dim, double *point, double *centers, uin
 }
 
 static void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uint32_t dim,
-               uint32_t datasetSize, uint32_t clusterCount, double *centers)
+                           uint32_t datasetSize, uint32_t clusterCount, double *centers)
 {
   uint32_t cluster;
   uint32_t i;
@@ -351,7 +354,7 @@ static void calcNewCenters(double *newCenters, uint32_t *count, double *datapoin
 }
 
 static double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
-    uint32_t dim, uint32_t clusterCount, uint32_t MAX_ITER)
+                         uint32_t dim, uint32_t clusterCount, uint32_t MAX_ITER)
 {
   uint32_t i;
 
@@ -375,7 +378,6 @@ static double *kmeansFit(double *centroids, double *datapoints, uint32_t dataset
   return centroids;
 }
 
-
 void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
 {
   uint32_t i, j;
@@ -387,8 +389,8 @@ void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
       if (j < cols - 1)
         printf(",");
     }
-    if (i + 1 < rows) 
-    /* if not last row - tommy 2021 */
+    if (i + 1 < rows)
+      /* if not last row - tommy 2021 */
       printf("\n");
   }
 }

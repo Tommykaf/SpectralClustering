@@ -6,7 +6,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+
 #include "heap.h"
+#include "parsematrix.h"
+
+#include "matrix.h"
+
 
 #define sqr(x) ((x)*(x))
 #define EPSILON 0.001
