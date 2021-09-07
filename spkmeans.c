@@ -2,7 +2,7 @@
 
 #include "spkmeans.h"
 
-static double l2norm(uint32_t dim, double *p1, double *p2)
+double l2norm(uint32_t dim, double *p1, double *p2)
 {
   double dist = 0;
   uint32_t i;
@@ -16,6 +16,14 @@ static double l2norm(uint32_t dim, double *p1, double *p2)
   return dist;
 }
 
+double vectorLength(uint32_t dim, double *v)
+{
+  double *zeros = (double*)calloc(dim, sizeof(double));
+  double res = l2norm(dim, v, zeros);
+  free(zeros);
+  return res;
+}
+
 /*
 Calculates the WAM of the graph of the given <points>, places it in res
 args:
@@ -24,16 +32,16 @@ args:
   dim - dimention of each point
   res - double square matrix of dimension obsCount 
 */
-static void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
+void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
 {
   uint32_t i, j;
   double tmp;
-
   for (i = 0; i < obsCount; i++)
   {
     for (j = 0; j < i; j++)
     {
-      tmp = exp(-0.5 * l2norm(dim, points + i * dim, points + j * dim));
+      tmp = l2norm(dim, &points[i * dim], &points[j * dim]);
+      tmp = exp(-0.5 * l2norm(dim, &points[i * dim], &points[j * dim]));
       res[i * obsCount + j] = tmp;
       res[j * obsCount + i] = tmp;
     }
@@ -66,7 +74,7 @@ args:
   obsCount - number of observations
   res - double array of obsCount length
 */
-static void DDG(double *WAM, uint32_t obsCount, double *res)
+void DDG(double *WAM, uint32_t obsCount, double *res)
 {
   uint32_t i;
 
@@ -98,7 +106,7 @@ args:
   DDG - the diagonal values array
   obsCount - number of values in the array
 */
-static double *prettyDDG(double *DDG, uint32_t obsCount)
+double *prettyDDG(double *DDG, uint32_t obsCount)
 {
   double *pretty = calloc(obsCount * obsCount, sizeof(double));
   uint32_t i;
@@ -119,7 +127,7 @@ args:
   obsCount - number of values in the array
   LNorm - The returned laplacian matrix
 */
-static void laplacian(double *WAM, double *DHalf, uint32_t obsCount, double *LNorm)
+void laplacian(double *WAM, double *DHalf, uint32_t obsCount, double *LNorm)
 {
   uint32_t i, j;
   double tmp;
@@ -165,12 +173,12 @@ void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
 }
 
 /* Assumes matrix is symetric, and V is full of zeros */
-static void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
+void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
 {
-  uint32_t i, j, r, count;
+  uint32_t i, j, r, count = 0;
   double theta, s, t, c, tmp;
   double arj, ari, aii, ajj, aij;
-  double diff;
+  double diff = 0;
 
   for (i = 0; i < rows; i++)
   {
@@ -225,10 +233,10 @@ static void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
   }
 }
 
-static uint32_t argmax(double *eigenArray, uint32_t count)
+uint32_t argmax(double *eigenArray, uint32_t count)
 {
   uint32_t i, k;
-  double delta, tmp;
+  double tmp, delta = -1.0;
   for (i = 0; i < count / 2; i++)
   {
     if ((tmp = fabs(eigenArray[i] - eigenArray[i + 1])) > delta)
@@ -241,7 +249,7 @@ static uint32_t argmax(double *eigenArray, uint32_t count)
 }
 
 /* build Eigenvector matrix, ret can't be initialized */
-static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
+void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
 
@@ -261,15 +269,18 @@ static void buildU(double *eigenArray, uint32_t count, uint32_t k, double* V, ma
       should save us some cache misses $P */
     }
   }
+  for (i = 0; i < count; i++)
+  {
+    normalize(k, &(ret->values[i*k]), vectorLength(k, &ret->values[i*k]));
+  }
 }
 
-static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
+matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim, uint32_t k){
   double *wam = malloc(sqr(obsCount) * sizeof(double));
   double *D = malloc(obsCount * sizeof(double));
   double *LNorm = malloc(sqr(obsCount) * sizeof(double));
   double *V = malloc(sqr(obsCount) * sizeof(double));
   double *eigenArray = malloc(obsCount * sizeof(double));
-  uint32_t k;
   matrix_t *DATA = malloc(sizeof(matrix_t));
   /* wam */
   WAM(points, obsCount, dim, wam);
@@ -281,9 +292,9 @@ static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
   /* jacob */
   Jacobi(LNorm, obsCount, V, eigenArray);
   /* build u */
-  k = argmax(eigenArray, obsCount);
+  k = k != 0 ? k : argmax(eigenArray, obsCount); /* if k is 0 we do the hueristic */
   DATA->values = malloc(sizeof(double) * k * obsCount); /* n by k */
-  buildU(eigenArray, obsCount, k, V, DATA);
+  buildT(eigenArray, obsCount, k, V, DATA);
 
   free(wam);
   free(D);
@@ -294,7 +305,7 @@ static matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim){
   return DATA;
 }
 
-static void sumPoints(uint32_t dim, double *p1, double *p2)
+void sumPoints(uint32_t dim, double *p1, double *p2)
 {
   uint32_t i;
   for (i = 0; i < dim; i++)
@@ -303,7 +314,7 @@ static void sumPoints(uint32_t dim, double *p1, double *p2)
   }
 }
 
-static void normalize(uint32_t dim, double *p, uint32_t factor)
+void normalize(uint32_t dim, double *p, uint32_t factor)
 {
   uint32_t i;
   for (i = 0; i < dim; i++)
@@ -312,7 +323,7 @@ static void normalize(uint32_t dim, double *p, uint32_t factor)
   }
 }
 
-static uint32_t closestCluster(uint32_t dim, double *point, double *centers, uint32_t clusterCount)
+uint32_t closestCluster(uint32_t dim, double *point, double *centers, uint32_t clusterCount)
 {
   double min = 0, dist = 0;
   uint32_t minIndex = 0, firstRun = 1;
@@ -330,7 +341,7 @@ static uint32_t closestCluster(uint32_t dim, double *point, double *centers, uin
   return minIndex;
 }
 
-static void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uint32_t dim,
+void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uint32_t dim,
                            uint32_t datasetSize, uint32_t clusterCount, double *centers)
 {
   uint32_t cluster;
@@ -353,15 +364,15 @@ static void calcNewCenters(double *newCenters, uint32_t *count, double *datapoin
   }
 }
 
-static double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
-                         uint32_t dim, uint32_t clusterCount, uint32_t MAX_ITER)
+double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
+                         uint32_t dim, uint32_t clusterCount)
 {
   uint32_t i;
 
   double *newCentroids = calloc(clusterCount, dim * sizeof(double));
   uint32_t *count = calloc(clusterCount, sizeof(int));
 
-  for (i = 0; i < MAX_ITER; i++)
+  for (i = 0; i < MAX_KMEANS_ITER; i++)
   {
     calcNewCenters(newCentroids, count, datapoints, dim, datasetSize, clusterCount, centroids);
     if (memcmp(centroids, newCentroids, clusterCount * dim * sizeof(double)))

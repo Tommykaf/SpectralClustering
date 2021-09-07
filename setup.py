@@ -46,7 +46,9 @@ setup(
             # the qualified name of the extension module to build
             'spkmeans',
             # the files to compile into our module relative to ``setup.py``
-            ['spkmeansmodule.c'],
+            ['spkmeansmodule.c',
+            'spkmeans.c',
+            'heap.c'],
             
             include_dirs=[numpy.get_include()]
         ),

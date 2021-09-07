@@ -1,6 +1,6 @@
 #include "parsematrix.h"
 
-void addPointToDataset(matrix *dataset, char line[], unsigned int *datasetMaxLen)
+void addPointToDataset(matrix_t *dataset, char line[], unsigned int *datasetMaxLen)
 {
   char *endptr;
   unsigned int i = 0;
@@ -25,7 +25,7 @@ void addPointToDataset(matrix *dataset, char line[], unsigned int *datasetMaxLen
   (dataset->rows)++;
 }
 
-void shrinkDataset(matrix *dataset)
+void shrinkDataset(matrix_t *dataset)
 {
   dataset->values = (double *)realloc(dataset->values, dataset->rows * dataset->cols * sizeof(double));
   if ((*dataset).values == NULL)
@@ -38,7 +38,7 @@ void shrinkDataset(matrix *dataset)
   Assumes that *dataset is allocated (not necessarily initialized) but (*dataset).values isn't allocated
   Also, in_file should be an open file on read mode
 */
-void parseFile(FILE *in_file, matrix *dataset)
+void parseFile(FILE *in_file, matrix_t *dataset)
 {
 
   unsigned int datasetMaxLen = DATASET_INIT_LEN;

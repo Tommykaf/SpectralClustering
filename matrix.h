@@ -3,10 +3,10 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-typedef struct _matrix {
+typedef struct matrix {
   double* values;
   uint32_t rows;
   uint32_t cols;
-} matrix;
+} matrix_t;
 
 #endif

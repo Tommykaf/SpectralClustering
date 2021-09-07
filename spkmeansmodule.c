@@ -98,7 +98,7 @@ static PyObject *py_DDG(PyObject *self, PyObject *args)
     }
   }
 
-  WAM(datapoints, count, dim, wam_c);
+  WAM(datapoints_c, count, dim, wam_c);
   DDG(wam_c, count, ddg_c);
   res_c = prettyDDG(ddg_c, count);
 
@@ -133,6 +133,7 @@ static PyObject *py_lNorm(PyObject *self, PyObject *args)
   datapoints_c = (double *)calloc(count, dim * sizeof(double));
   wam_c = (double *)calloc(count, count * sizeof(double));
   ddg_c = (double *)calloc(count, sizeof(double));
+  res_c = (double *)malloc(count * count * sizeof(double));
 
   assert(datapoints_c != NULL && wam_c != NULL && ddg_c != NULL);
 
@@ -154,7 +155,7 @@ static PyObject *py_lNorm(PyObject *self, PyObject *args)
     }
   }
 
-  WAM(datapoints, count, dim, wam_c);
+  WAM(datapoints_c, count, dim, wam_c);
   DDG(wam_c, count, ddg_c);
   DHalf(ddg_c, count);
   laplacian(wam_c, ddg_c, count, res_c);
@@ -173,7 +174,6 @@ static PyObject *py_lNorm(PyObject *self, PyObject *args)
 
 static PyObject *py_fit(PyObject *self, PyObject *args)
 {
-  uint32_t MAX_ITER;
   uint32_t datasetSize;
   uint32_t dim;
   uint32_t clusterCount;
@@ -185,7 +185,7 @@ static PyObject *py_fit(PyObject *self, PyObject *args)
   PyArrayObject *centroids, *datapoints;
   npy_intp i = 0, j = 0;
 
-  if (!PyArg_ParseTuple(args, "OOIIII:fit_wrapper", &input_centroids, &input_datapoints, &MAX_ITER, &datasetSize, &dim, &clusterCount))
+  if (!PyArg_ParseTuple(args, "OOIII:fit_wrapper", &input_centroids, &input_datapoints, &datasetSize, &dim, &clusterCount))
   {
     return NULL;
   }
@@ -220,7 +220,7 @@ static PyObject *py_fit(PyObject *self, PyObject *args)
     }
   }
 
-  kmeansFit(centroids_c, datapoints_c, datasetSize, dim, clusterCount, MAX_ITER);
+  kmeansFit(centroids_c, datapoints_c, datasetSize, dim, clusterCount);
 
   res = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_DOUBLE);
   memcpy(PyArray_DATA(res), centroids_c, sizeof(double) * clusterCount * dim);
@@ -237,6 +237,7 @@ static PyObject *py_jacobi(PyObject *self, PyObject *args)
 {
   uint32_t count;
   npy_intp dimensions[2];
+  npy_intp eigenCount[1];
   double *matrix_c, *V_c, *eigenArray_c;
   PyObject *input_matrix;
   PyArrayObject *V;
@@ -273,9 +274,10 @@ static PyObject *py_jacobi(PyObject *self, PyObject *args)
     }
   }
 
-  Jacobi(matrix_c, count, V_c, eigenArray);
+  Jacobi(matrix_c, count, V_c, eigenArray_c);
 
-  eigenArray = (PyArrayObject *)PyArray_SimpleNew(1, (npy_int *){count}, NPY_DOUBLE);
+  eigenCount[0] = (npy_intp)count;
+  eigenArray = (PyArrayObject *)PyArray_SimpleNew(1, eigenCount, NPY_DOUBLE);
   V = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_DOUBLE);
   memcpy(PyArray_DATA(eigenArray), eigenArray_c, sizeof(double) * count);
   memcpy(PyArray_DATA(V), V_c, sizeof(double) * sqr(count));
@@ -292,15 +294,16 @@ static PyObject *py_prepate_data(PyObject *self, PyObject *args)
 {
   uint32_t count;
   uint32_t dim;
+  uint32_t k;
   npy_intp dimensions[2];
   double *datapoints_c;
-  matrix *res_c;
+  matrix_t *res_c;
   PyObject *input_datapoints;
   PyArrayObject *res;
   PyArrayObject *datapoints;
   npy_intp i = 0, j = 0;
 
-  if (!PyArg_ParseTuple(args, "OII:wam_wrapper", &input_datapoints, &count, &dim))
+  if (!PyArg_ParseTuple(args, "OIII:wam_wrapper", &input_datapoints, &count, &dim, &k))
   {
     return NULL;
   }
@@ -324,7 +327,7 @@ static PyObject *py_prepate_data(PyObject *self, PyObject *args)
     }
   }
 
-  res_c = prepareData(datapoints_c, count, dim);
+  res_c = prepareData(datapoints_c, count, dim, k);
 
   dimensions[0] = res_c->rows;
   dimensions[1] = res_c->cols;
@@ -375,7 +378,7 @@ static struct PyModuleDef moduledef = {
     -1,
     capiMethods};
 
-PyMODINIT_FUNC PyInit_mykmeanspp(void)
+PyMODINIT_FUNC PyInit_spkmeans(void)
 {
   PyObject *m;
 
