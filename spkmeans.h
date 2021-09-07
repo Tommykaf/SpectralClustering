@@ -15,7 +15,7 @@
 
 
 #define sqr(x) ((x)*(x))
-#define EPSILON 0.001
+#define EPSILON 1e-15
 #define MAX_JACOBI_ITER 100
 #define MAX_KMEANS_ITER 300
 
@@ -61,7 +61,7 @@ void
 sumPoints(uint32_t dim, double *p1, double *p2);
 
 void
-normalize(uint32_t dim, double *p, uint32_t factor);
+normalize(uint32_t dim, double *p, double factor);
 
 uint32_t 
 closestCluster(uint32_t dim, double *point, 

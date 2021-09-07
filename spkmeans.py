@@ -4,6 +4,7 @@ import sys
 
 import spkmeans
 np.random.seed(0)
+format_zero = lambda x : 0 if 0 > x > -0.00005 else x
 
 
 def read_data(src: str):
@@ -12,7 +13,6 @@ def read_data(src: str):
 
 def pretty_print(matrix: np.ndarray):
     # res = np.round(matrix, decimals=4)
-    format_zero = lambda x : 0 if 0 > x > -0.00005 else x
     print("\n".join(",".join(f"{format_zero(coord):.4f}" for coord in row) for row in matrix), end="")
 
 
@@ -43,9 +43,9 @@ if __name__ == "__main__":
 
     # switch(goal)
     if goal == 'jacobi':
-        eigen_array, V = spkmeans.jacobi(data_matrix, count)
-        print(eigen_array)
-        pretty_print(V)
+        eigen_array, Vt = spkmeans.jacobi(data_matrix, count)
+        print(','.join(f"{format_zero(value):.4f}" for value in eigen_array))
+        pretty_print(Vt)
     elif goal == 'wam':
         pretty_print(spkmeans.WAM(data_matrix, count, dim))
     elif goal == 'ddg':
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     elif goal == 'lnorm':
         pretty_print(spkmeans.lNorm(data_matrix, count, dim))
     elif goal == 'spk':
-        t_array = spkmeans.prepareData(data_matrix, count, dim, K)
+        t_array = spkmeans.prepare_data(data_matrix, count, dim, K)
         K = t_array.shape[1]
         centers_indices = algo(t_array, K)
         print(str(centers_indices)[1:-1].replace(" ","")) # [1, 2, 3, 4] => 1,2,3,4

@@ -178,22 +178,22 @@ void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
   uint32_t i, j, r, count = 0;
   double theta, s, t, c, tmp;
   double arj, ari, aii, ajj, aij;
-  double diff = 0;
+  double diff = 2 * EPSILON;
 
   for (i = 0; i < rows; i++)
   {
     V[i * rows + i] = 1.0;
   }
 
-  while (diff < EPSILON && count++ < MAX_JACOBI_ITER)
+  while (diff > EPSILON && count++ < MAX_JACOBI_ITER)
   {
     diff = 0;
     maxItem(matrix, rows, &i, &j);
-    aij = matrix[i * rows + j];
+    aij = matrix[i * rows + j]; /* The Max off diag */
     aii = matrix[i * (rows + 1)];
     ajj = matrix[j * (rows + 1)];
     theta = (ajj - aii) / (2 * aij);
-    t = (theta >= 0 ? 1 : -1) / (fabs(theta) + sqrt(sqr(theta) + 1));
+    t = (theta >= 0 ? 1.0 : -1.0) / (fabs(theta) + sqrt(sqr(theta) + 1));
     c = 1 / sqrt(sqr(t) + 1);
     s = t * c;
 
@@ -223,9 +223,11 @@ void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
     matrix[i * (rows + 1)] = sqr(c) * aii + sqr(s) * ajj - 2 * c * s * aij;
     matrix[j * (rows + 1)] = sqr(s) * aii + sqr(c) * ajj + 2 * c * s * aij;
     matrix[i * rows + j] = 0;
+    matrix[j * rows + i] = 0;
 
-    diff -= (sqr(aii) + sqr(ajj));
-    diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
+    diff += 2 * sqr(aij);
+    // diff -= (sqr(aii) + sqr(ajj));
+    // diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
   }
   for (r = 0; r < rows; r++)
   {
@@ -252,6 +254,7 @@ uint32_t argmax(double *eigenArray, uint32_t count)
 void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
+  double len;
 
   assert(indices != NULL);
 
@@ -271,7 +274,8 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   }
   for (i = 0; i < count; i++)
   {
-    normalize(k, &(ret->values[i*k]), vectorLength(k, &ret->values[i*k]));
+    len = vectorLength(k, &ret->values[i*k]);
+    normalize(k, &(ret->values[i*k]), len);
   }
 }
 
@@ -279,9 +283,16 @@ matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim, uint32_t 
   double *wam = malloc(sqr(obsCount) * sizeof(double));
   double *D = malloc(obsCount * sizeof(double));
   double *LNorm = malloc(sqr(obsCount) * sizeof(double));
-  double *V = malloc(sqr(obsCount) * sizeof(double));
+  double *V = (double*)calloc(sqr(obsCount), sizeof(double));
   double *eigenArray = malloc(obsCount * sizeof(double));
   matrix_t *DATA = malloc(sizeof(matrix_t));
+
+  assert(wam != NULL);
+  assert(D != NULL);
+  assert(LNorm != NULL);
+  assert(V != NULL);
+  assert(eigenArray != NULL);
+  assert(DATA != NULL);
   /* wam */
   WAM(points, obsCount, dim, wam);
   /* ddg + dhalf */
@@ -294,6 +305,9 @@ matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim, uint32_t 
   /* build u */
   k = k != 0 ? k : argmax(eigenArray, obsCount); /* if k is 0 we do the hueristic */
   DATA->values = malloc(sizeof(double) * k * obsCount); /* n by k */
+
+  assert(DATA->values != NULL);
+
   buildT(eigenArray, obsCount, k, V, DATA);
 
   free(wam);
@@ -314,7 +328,7 @@ void sumPoints(uint32_t dim, double *p1, double *p2)
   }
 }
 
-void normalize(uint32_t dim, double *p, uint32_t factor)
+void normalize(uint32_t dim, double *p, double factor)
 {
   uint32_t i;
   for (i = 0; i < dim; i++)

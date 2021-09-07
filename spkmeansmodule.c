@@ -364,7 +364,7 @@ static PyMethodDef capiMethods[] = {
      (PyCFunction)py_jacobi,
      METH_VARARGS,
      PyDoc_STR("A function used to calculate the eigen values and vectors of a given matrix")},
-    {"prepateData",
+    {"prepare_data",
      (PyCFunction)py_prepate_data,
      METH_VARARGS,
      PyDoc_STR("A function used to prepare data from set of observations")},
