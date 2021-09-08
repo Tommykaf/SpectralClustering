@@ -54,7 +54,9 @@ if __name__ == "__main__":
         pretty_print(spkmeans.lNorm(data_matrix, count, dim))
     elif goal == 'spk':
         t_array = spkmeans.prepare_data(data_matrix, count, dim, K)
+        count = t_array.shape[0]
         K = t_array.shape[1]
+        dim = K
         centers_indices = algo(t_array, K)
         print(str(centers_indices)[1:-1].replace(" ","")) # [1, 2, 3, 4] => 1,2,3,4
         pretty_print(spkmeans.fit([t_array[i] for i in centers_indices], t_array, count, dim, K))  
