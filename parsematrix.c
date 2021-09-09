@@ -1,17 +1,18 @@
 #include "parsematrix.h"
 
-void addPointToDataset(matrix_t *dataset, char line[], unsigned int *datasetMaxLen)
+void addPointToDataset(matrix_t *dataset, char line[])
 {
   char *endptr;
-  unsigned int i = 0;
+  uint32_t datasetMaxLen = DATASET_INIT_LEN;
+  uint32_t i = 0;
 
-  if (dataset->rows == (*datasetMaxLen) - 1 && DATASET_MAX_LEN - 1 > dataset->rows)
+  if (dataset->rows == datasetMaxLen - 1 && DATASET_MAX_LEN - 1 > dataset->rows)
   {
-    (*datasetMaxLen) = MIN(2 * (*datasetMaxLen), DATASET_MAX_LEN);
-    dataset->values = (double *)realloc(dataset->values, (*datasetMaxLen) * sizeof(double));
-    if (dataset->values == NULL)
+    datasetMaxLen = MIN(2 * datasetMaxLen, DATASET_MAX_LEN);
+    dataset->values = (double *)realloc(dataset->values, datasetMaxLen * sizeof(double));
+    assert(dataset->values != NULL);
     {
-      assert("Realloc failed :(");
+      
     }
   }
 
@@ -28,10 +29,7 @@ void addPointToDataset(matrix_t *dataset, char line[], unsigned int *datasetMaxL
 void shrinkDataset(matrix_t *dataset)
 {
   dataset->values = (double *)realloc(dataset->values, dataset->rows * dataset->cols * sizeof(double));
-  if ((*dataset).values == NULL)
-  {
-    assert("Realloc failed :(");
-  }
+  assert(dataset->values != NULL);
 }
 
 /*
@@ -41,10 +39,9 @@ void shrinkDataset(matrix_t *dataset)
 void parseFile(char *in_file, matrix_t *dataset)
 {
   FILE *fp = fopen(in_file, "r");
-  unsigned int datasetMaxLen = DATASET_INIT_LEN;
-  int firstline = 1;
+  uint32_t firstline = 1;
   char line[LINE_MAX_LEN];
-  unsigned int i = 0;
+  uint32_t i = 0;
 
   dataset->cols = 1;
   dataset->rows = 0;
@@ -62,8 +59,9 @@ void parseFile(char *in_file, matrix_t *dataset)
         }
       }
       dataset->values = calloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
+      assert(dataset->values != NULL);
     }
-    addPointToDataset(dataset, line, &datasetMaxLen);
+    addPointToDataset(dataset, line);
   }
 
   shrinkDataset(dataset);

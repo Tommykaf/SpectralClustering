@@ -11,6 +11,6 @@
 
 #include "matrix.h"
 
-void addPointToDataset(matrix_t* dataset, char line[], unsigned int * datasetMaxLen);
+void addPointToDataset(matrix_t* dataset, char line[]);
 void shrinkDataset(matrix_t* dataset);
 void parseFile(char *in_file, matrix_t* dataset);
