@@ -134,7 +134,7 @@ void prettyDDG(double *DDG, uint32_t obsCount)
     pretty->values[i * pretty->cols + i] = DDG[i];
   }
   
-  printMatrix(pretty);
+  printMatrix(pretty->values, pretty->rows, pretty->cols);
 
   free(pretty->values);
   free(pretty);
