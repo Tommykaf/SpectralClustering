@@ -431,7 +431,7 @@ double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
   return centroids;
 }
 
-void printMatrix(double* values, uint32_t rows, uint32_t cols);
+void printMatrix(double* values, uint32_t rows, uint32_t cols)
 {
   uint32_t i, j;
   for (i = 0; i < rows; i++)
