@@ -309,8 +309,12 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   }
   for (i = 0; i < count; i++)
   {
-    len = vectorLength(k, &ret->values[i*k]);
-    normalize(k, &(ret->values[i*k]), len);
+    printMatrix(&ret->values[i*ret->cols], 1, k);
+    len = vectorLength(ret->cols, &ret->values[i*ret->cols]);
+    printf("\n%f\n", len);
+    normalize(ret->cols, &(ret->values[i*ret->cols]), len);
+    printMatrix(&ret->values[i*ret->cols], 1, k);
+    printf("\n");
   }
   free(indices);
 }
@@ -396,7 +400,7 @@ void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uin
   uint32_t j;
 
   memset(newCenters, 0, sizeof(double) * dim * clusterCount);
-  memset(count, 0, sizeof(int) * clusterCount);
+  memset(count, 0, sizeof(uint32_t) * clusterCount);
 
   for (j = 0; j < datasetSize; j++)
   {
