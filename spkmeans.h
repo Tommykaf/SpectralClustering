@@ -24,28 +24,28 @@ double
 l2norm(uint32_t dim, double *p1, double *p2);
 
 void
-WAM(double *points, uint32_t obsCount, uint32_t dim, double *res);
+WAM(matrix_t *matrix, matrix_t *res);
 
 double 
-sumRow(double *matrix, uint32_t cols, uint32_t rowIndex);
+sumRow(matrix_t *matrix, uint32_t rowIndex);
 
 void 
-DDG(double *WAM, uint32_t obsCount, double *res);
+DDG(matrix_t *WAM, double *res);
 
 void 
 DHalf(double *DDG, uint32_t obsCount);
 
-double* 
+void 
 prettyDDG(double* DDG, uint32_t obsCount);
 
 void /* HEZY */
-laplacian(double* WAM, double* DHalf, uint32_t obsCount, double *LNorm);
+laplacian(matrix_t* WAM, double* DHalf, matrix_t *LNorm);
 
 void 
-maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col);
+maxItem(matrix_t *matrix, uint32_t *row, uint32_t *col);
 
 void 
-Jacobi(double *matrix, uint32_t rows, double *V, double* eigenArray);
+Jacobi(matrix_t *input_matrix, double *V, double* eigenArray);
 
 uint32_t 
 argmax(double *eigenArray, uint32_t count);
@@ -55,7 +55,7 @@ buildT(double *eigenArray, uint32_t count,
             uint32_t k, double* V, matrix_t* ret);
 
 matrix_t*
-prepareData(double *points, uint32_t obsCount, uint32_t dim, uint32_t k);
+prepareData(matrix_t *points, uint32_t k);
 
 void 
 sumPoints(uint32_t dim, double *p1, double *p2);
@@ -79,4 +79,4 @@ kmeansFit(double *centroids, double *datapoints,
     uint32_t clusterCount);
 
 void 
-printMatrix(double* matrix, uint32_t rows, uint32_t cols);
+printMatrix(matrix_t* matrix);

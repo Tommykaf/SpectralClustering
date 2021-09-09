@@ -18,34 +18,48 @@ double l2norm(uint32_t dim, double *p1, double *p2)
 
 double vectorLength(uint32_t dim, double *v)
 {
-  double *zeros = (double*)calloc(dim, sizeof(double));
-  double res = l2norm(dim, v, zeros);
-  free(zeros);
-  return res;
+  double dist = 0;
+  uint32_t i;
+
+  for (i = 0; i < dim; i++)
+  {
+    dist += sqr(v[i]);
+  }
+
+  dist = sqrt(dist);
+  return dist;
 }
 
 /*
 Calculates the WAM of the graph of the given <points>, places it in res
 args:
-  points - array of the observations
-  obsCount - number of observations
-  dim - dimention of each point
-  res - double square matrix of dimension obsCount 
+  matrix - observation matrix
+  res - WAM of the original point matrix - size rows x rows
 */
-void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
+void WAM(matrix_t *matrix, matrix_t *res)
 {
   uint32_t i, j;
   double tmp;
+  uint32_t obsCount = matrix->rows;
+  uint32_t dim = matrix->cols;
+  double *points = matrix->values;
+  
+  res->cols = obsCount;
+  res->rows = obsCount;
+
+  res->values = malloc(res->rows * res->cols * sizeof(double));
+  assert(res->values != NULL);
+
   for (i = 0; i < obsCount; i++)
   {
     for (j = 0; j < i; j++)
     {
       tmp = l2norm(dim, &points[i * dim], &points[j * dim]);
       tmp = exp(-0.5 * l2norm(dim, &points[i * dim], &points[j * dim]));
-      res[i * obsCount + j] = tmp;
-      res[j * obsCount + i] = tmp;
+      res->values[i * obsCount + j] = tmp;
+      res->values[j * obsCount + i] = tmp;
     }
-    res[i * obsCount + i] = 0;
+    res->values[i * obsCount + i] = 0;
   }
 }
 
@@ -53,16 +67,15 @@ void WAM(double *points, uint32_t obsCount, uint32_t dim, double *res)
 Sum <cols> elements in a given <rowIndex> from <matrix> and returns the sum
 args:
   matrix - the matrix to sum from
-  cols - the number of cols in the matrix
   rowIndex - the row index to sum
 */
-double sumRow(double *matrix, uint32_t cols, uint32_t rowIndex)
+double sumRow(matrix_t *matrix, uint32_t rowIndex)
 {
   double sum = 0;
   uint32_t i;
-  for (i = 0; i < cols; i++)
+  for (i = 0; i < matrix->cols; i++)
   {
-    sum += matrix[rowIndex * cols + i];
+    sum += matrix->values[rowIndex * matrix->cols + i];
   }
   return sum;
 }
@@ -70,22 +83,21 @@ double sumRow(double *matrix, uint32_t cols, uint32_t rowIndex)
 /*
 Calculates the diagonal of the DDG of the given WAM, places it in res
 args:
-  WAM - double matrix of dimension obsCount 
-  obsCount - number of observations
-  res - double array of obsCount length
+  WAM - a WAM matrix
+  res - double array representing diagonal of the DDG
 */
-void DDG(double *WAM, uint32_t obsCount, double *res)
+void DDG(matrix_t *WAM, double *res)
 {
   uint32_t i;
 
-  for (i = 0; i < obsCount; i++)
+  for (i = 0; i < WAM->rows; i++)
   {
-    res[i] = sumRow(WAM, obsCount, i);
+    res[i] = sumRow(WAM, i);
   }
 }
 
 /*
-Creates the Dhalf based on DDG and places it in DDG
+Modifies DDG to be DHalf
 args:
   obsCount - number of observations
   DDG - double array of obsCount length
@@ -95,7 +107,6 @@ void DHalf(double *DDG, uint32_t obsCount)
   uint32_t i;
   for (i = 0; i < obsCount; i++)
   {
-    /*DDG[i] = 1 / invsqrtQuake(DDG[i]);*/
     DDG[i] = 1 / sqrt(DDG[i]);
   }
 }
@@ -106,16 +117,27 @@ args:
   DDG - the diagonal values array
   obsCount - number of values in the array
 */
-double *prettyDDG(double *DDG, uint32_t obsCount)
+void prettyDDG(double *DDG, uint32_t obsCount)
 {
-  double *pretty = calloc(obsCount * obsCount, sizeof(double));
+  matrix_t * pretty = malloc(sizeof(matrix_t));
+
   uint32_t i;
 
-  for (i = 0; i < obsCount; i++)
+  pretty->cols = obsCount;
+  pretty->rows = obsCount;
+
+  pretty->values = calloc(obsCount * obsCount, sizeof(double));
+  assert(pretty != NULL && pretty->values != NULL);
+
+  for (i = 0; i < pretty->rows; i++)
   {
-    pretty[i * obsCount + i] = DDG[i];
+    pretty->values[i * pretty->cols + i] = DDG[i];
   }
-  return pretty;
+  
+  printMatrix(pretty);
+
+  free(pretty->values);
+  free(pretty);
 }
 
 
@@ -127,20 +149,25 @@ args:
   obsCount - number of values in the array
   LNorm - The returned laplacian matrix
 */
-void laplacian(double *WAM, double *DHalf, uint32_t obsCount, double *LNorm)
+void laplacian(matrix_t *WAM, double *DHalf, matrix_t *LNorm)
 {
   uint32_t i, j;
   double tmp;
+  LNorm->rows = WAM->rows;
+  LNorm->cols = WAM->cols;
 
-  for (i = 0; i < obsCount; i++)
+  LNorm->values = malloc(sqr(LNorm->rows) * sizeof(double));
+  assert(LNorm->values != NULL);
+
+  for (i = 0; i < LNorm->rows; i++)
   {
     for (j = 0; j < i; j++)
     {
-      tmp = -(DHalf[i] * WAM[i * obsCount + j] * DHalf[j]);
-      LNorm[i * obsCount + j] = tmp;
-      LNorm[j * obsCount + i] = tmp;
+      tmp = -(DHalf[i] * WAM->values[i * WAM->cols + j] * DHalf[j]);
+      LNorm->values[i * LNorm->cols + j] = tmp;
+      LNorm->values[j * LNorm->cols + i] = tmp;
     }
-    LNorm[i * obsCount + i] = 1.0;
+    LNorm->values[i * LNorm->cols + i] = 1.0;
   }
 }
 
@@ -152,15 +179,15 @@ args:
   row - the max item row index - return value 0
   col - the max item col index - return value 2
 */
-void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
+void maxItem(matrix_t *matrix, uint32_t *row, uint32_t *col)
 {
   uint32_t i, j, currI = 1, currJ = 0;
-  double tmp, currMax = fabs(matrix[currJ + currI * rows]);
-  for (i = 1; i < rows; i++)
+  double tmp, currMax = fabs(matrix->values[currJ + currI * matrix->rows]);
+  for (i = 1; i < matrix->rows; i++)
   {
     for (j = 0; j < i; j++)
     {
-      if ((tmp = fabs(matrix[j + i * rows])) > currMax)
+      if ((tmp = fabs(matrix->values[j + i * matrix->rows])) > currMax)
       {
         currI = i;
         currJ = j;
@@ -173,12 +200,15 @@ void maxItem(double *matrix, uint32_t rows, uint32_t *row, uint32_t *col)
 }
 
 /* Assumes matrix is symetric, and V is full of zeros */
-void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
+void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
 {
   uint32_t i, j, r, count = 0;
   double theta, s, t, c, tmp;
   double arj, ari, aii, ajj, aij;
   double diff = 2 * EPSILON;
+
+  uint32_t rows = input_matrix->rows;
+  double *matrix = input_matrix->values;
 
   for (i = 0; i < rows; i++)
   {
@@ -188,7 +218,7 @@ void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
   while (diff > EPSILON && count++ < MAX_JACOBI_ITER)
   {
     diff = 0;
-    maxItem(matrix, rows, &i, &j);
+    maxItem(input_matrix, &i, &j);
     aij = matrix[i * rows + j]; /* The Max off diag */
     aii = matrix[i * (rows + 1)];
     ajj = matrix[j * (rows + 1)];
@@ -248,7 +278,7 @@ uint32_t argmax(double *eigenArray, uint32_t count)
   return k;
 }
 
-/* build Eigenvector matrix, ret can't be initialized */
+/* build Eigenvector matrix, ret must be initialized */
 void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
   uint32_t *indices = malloc(sizeof(uint32_t) * k);
@@ -260,6 +290,10 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   /* indices now contains the k first eigenValues indices */
   ret->rows = count;
   ret->cols = k;
+
+  ret->values = malloc(sizeof(double) * k * count); /* n by k */
+  assert(ret->values != NULL);
+
   for (i = 0; i < k; i++)
   {
     for (j = 0; j < count; j++)
@@ -277,40 +311,34 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   }
 }
 
-matrix_t *prepareData(double *points, uint32_t obsCount, uint32_t dim, uint32_t k){
-  double *wam = malloc(sqr(obsCount) * sizeof(double));
-  double *D = malloc(obsCount * sizeof(double));
-  double *LNorm = malloc(sqr(obsCount) * sizeof(double));
-  double *V = (double*)calloc(sqr(obsCount), sizeof(double));
-  double *eigenArray = malloc(obsCount * sizeof(double));
-  matrix_t *DATA = malloc(sizeof(matrix_t));
+matrix_t *prepareData(matrix_t *points, uint32_t k){
+  int obsCount = points->rows;
+  matrix_t *wam = (matrix_t *) malloc(sizeof(matrix_t));
+  matrix_t *LNorm = (matrix_t *) malloc(sizeof(matrix_t));
+  matrix_t *DATA = (matrix_t *) malloc(sizeof(matrix_t));
+  double *D = (double *) malloc(obsCount * sizeof(double));
+  double *V = (double *) calloc(sqr(obsCount), sizeof(double));
+  double *eigenArray = (double *) malloc(obsCount * sizeof(double));
 
-  assert(wam != NULL);
-  assert(D != NULL);
-  assert(LNorm != NULL);
-  assert(V != NULL);
-  assert(eigenArray != NULL);
-  assert(DATA != NULL);
   /* wam */
-  WAM(points, obsCount, dim, wam);
+  WAM(points, wam);
   /* ddg + dhalf */
-  DDG(wam, obsCount, D);
+  DDG(wam, D);
   DHalf(D, obsCount);
   /*lnorm */
-  laplacian(wam, D, obsCount, LNorm);
+  laplacian(wam, D, LNorm);
   /* jacob */
-  Jacobi(LNorm, obsCount, V, eigenArray);
-  /* build u */
+  Jacobi(LNorm, V, eigenArray);
+  /* build T */
   k = k != 0 ? k : argmax(eigenArray, obsCount); /* if k is 0 we do the hueristic */
-  DATA->values = malloc(sizeof(double) * k * obsCount); /* n by k */
-
-  assert(DATA->values != NULL);
-
   buildT(eigenArray, obsCount, k, V, DATA);
 
+  free(wam->values);
   free(wam);
-  free(D);
+  free(LNorm->values);
   free(LNorm);
+
+  free(D);
   free(eigenArray);
   free(V);
 
@@ -383,6 +411,8 @@ double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
 
   double *newCentroids = calloc(clusterCount, dim * sizeof(double));
   uint32_t *count = calloc(clusterCount, sizeof(int));
+  
+  assert(newCentroids != NULL && count != NULL);
 
   for (i = 0; i < MAX_KMEANS_ITER; i++)
   {
@@ -401,18 +431,18 @@ double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
   return centroids;
 }
 
-void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
+void printMatrix(matrix_t *matrix)
 {
   uint32_t i, j;
-  for (i = 0; i < rows; i++)
+  for (i = 0; i < matrix->rows; i++)
   {
-    for (j = 0; j < cols; j++)
+    for (j = 0; j < matrix->cols; j++)
     {
-      printf("%.4f", matrix[i * cols + j]);
-      if (j < cols - 1)
+      printf("%.4f", matrix->values[i * matrix->cols + j]);
+      if (j < matrix->cols - 1)
         printf(",");
     }
-    if (i + 1 < rows)
+    if (i + 1 < matrix->rows)
       /* if not last row - tommy 2021 */
       printf("\n");
   }
@@ -425,6 +455,7 @@ int main(int argc, char* argv[]) {
   assert(argc == 4);
   K = atoi(argv[1]);
   initial_input = (matrix_t *) calloc(1, sizeof(matrix_t));
+  assert(initial_input != NULL);
 
   parseFile(argv[3], initial_input);
 
