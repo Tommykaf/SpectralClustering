@@ -309,12 +309,9 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   }
   for (i = 0; i < count; i++)
   {
-    printMatrix(&ret->values[i*ret->cols], 1, k);
     len = vectorLength(ret->cols, &ret->values[i*ret->cols]);
-    printf("\n%f\n", len);
     normalize(ret->cols, &(ret->values[i*ret->cols]), len);
     printMatrix(&ret->values[i*ret->cols], 1, k);
-    printf("\n");
   }
   free(indices);
 }
