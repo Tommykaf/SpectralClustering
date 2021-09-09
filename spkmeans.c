@@ -217,8 +217,9 @@ void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
 
   while (diff > EPSILON && count++ < MAX_JACOBI_ITER)
   {
+   /* printf("c = %d, d = %.15f\n", count, diff);*/
     diff = 0;
-    maxItem(input_matrix, &i, &j);
+    maxItem(input_matrix, &j, &i);
     aij = matrix[i * rows + j]; /* The Max off diag */
     aii = matrix[i * (rows + 1)];
     ajj = matrix[j * (rows + 1)];
@@ -263,16 +264,17 @@ void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
   }
 }
 
+/* Eigengap hurestic*/
 uint32_t argmax(double *eigenArray, uint32_t count)
 {
-  uint32_t i, k;
+  uint32_t i, k = 0;
   double tmp, delta = -1.0;
   for (i = 0; i < count / 2; i++)
   {
     if ((tmp = fabs(eigenArray[i] - eigenArray[i + 1])) > delta)
     {
       delta = tmp;
-      k = i;
+      k = i+1;
     }
   }
   return k;
@@ -401,7 +403,7 @@ void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uin
 
   for (i = 0; i < clusterCount; i++)
   {
-    normalize(dim, &(newCenters[i * dim]), count[i]);
+    normalize(dim, &(newCenters[i * dim]), (double) count[i]);
   }
 }
 
@@ -418,7 +420,7 @@ void kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
   for (i = 0; i < MAX_KMEANS_ITER; i++)
   {
     calcNewCenters(newCentroids, count, datapoints, dim, datasetSize, clusterCount, centroids);
-    if (memcmp(centroids, newCentroids, clusterCount * dim * sizeof(double)))
+    if (memcmp(centroids, newCentroids, clusterCount * dim * sizeof(double)) == 0)
     {
       break;
     }
@@ -430,6 +432,12 @@ void kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
   free(count);
 }
 
+/* Handles the -0 situation */
+double zerod(double num)
+{
+  return -0.00005 < num && num < 0 ? 0 : num;
+}
+
 void printMatrix(double* values, uint32_t rows, uint32_t cols)
 {
   uint32_t i, j;
@@ -437,7 +445,7 @@ void printMatrix(double* values, uint32_t rows, uint32_t cols)
   {
     for (j = 0; j < cols; j++)
     {
-      printf("%.4f", values[i * cols + j]);
+      printf("%.4f", zerod(values[i * cols + j]));
       if (j < cols - 1)
         printf(",");
     }
