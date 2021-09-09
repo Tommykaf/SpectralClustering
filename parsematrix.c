@@ -40,7 +40,7 @@ void parseFile(char *in_file, matrix_t *dataset)
 {
   FILE *fp = fopen(in_file, "r");
   uint32_t firstline = 1;
-  char line[LINE_MAX_LEN];
+  char line[LINE_MAX_LEN] = "";
   uint32_t i = 0;
 
   dataset->cols = 1;

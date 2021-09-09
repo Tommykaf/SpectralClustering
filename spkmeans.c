@@ -309,6 +309,7 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
     len = vectorLength(k, &ret->values[i*k]);
     normalize(k, &(ret->values[i*k]), len);
   }
+  free(indices);
 }
 
 matrix_t *prepareData(matrix_t *points, uint32_t k){
@@ -536,8 +537,10 @@ int main(int argc, char* argv[]) {
         }
       free(D);
       }
-    
+    free(wam->values);
     free(wam);
     }
+    free(initial_input->values);
+    free(initial_input);
     return 0;
 }
