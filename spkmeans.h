@@ -73,7 +73,7 @@ calcNewCenters(double *newCenters, uint32_t *count,
                uint32_t datasetSize, uint32_t clusterCount,
                double *centers);
 
-double *
+void
 kmeansFit(double *centroids, double *datapoints,
     uint32_t datasetSize,uint32_t dim,
     uint32_t clusterCount);

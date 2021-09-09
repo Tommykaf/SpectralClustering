@@ -404,7 +404,7 @@ void calcNewCenters(double *newCenters, uint32_t *count, double *datapoints, uin
   }
 }
 
-double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
+void kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
                          uint32_t dim, uint32_t clusterCount)
 {
   uint32_t i;
@@ -427,8 +427,6 @@ double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
 
   free(newCentroids);
   free(count);
-
-  return centroids;
 }
 
 void printMatrix(double* values, uint32_t rows, uint32_t cols)
@@ -450,14 +448,96 @@ void printMatrix(double* values, uint32_t rows, uint32_t cols)
 
 int main(int argc, char* argv[]) {
   uint32_t K;
-  matrix_t *initial_input;
+  matrix_t *initial_input, *wam, *lNorm, *data;
+  double *eigenArray, *V, *D, *centroids;
 
   assert(argc == 4);
   K = atoi(argv[1]);
   initial_input = (matrix_t *) calloc(1, sizeof(matrix_t));
   assert(initial_input != NULL);
 
+  assert(strcmp(argv[2], "jacobi") == 0 || 
+        strcmp(argv[2], "wam") == 0||
+        strcmp(argv[2], "ddg") == 0||
+        strcmp(argv[2], "lnorm") == 0||
+        strcmp(argv[2], "spk") == 0 
+  );
+
   parseFile(argv[3], initial_input);
 
-  return 0;
+  if (strcmp(argv[2], "jacobi") == 0) {
+    V = (double *) calloc(sqr(initial_input->rows), sizeof(double));
+    assert(V != NULL);
+    eigenArray = malloc(initial_input->rows * sizeof(double));
+    assert(eigenArray != NULL);
+    Jacobi(initial_input, V, eigenArray);
+
+    printMatrix(eigenArray, 1, initial_input->rows);
+    printf("\n"); /* printMatrix doesnt print another \n at the end*/
+    printMatrix(V, initial_input->rows, initial_input->rows);
+    
+    free(V);
+    free(eigenArray);
+
+  } else {
+    wam = (matrix_t *) calloc(1, sizeof(matrix_t));
+    assert(wam != NULL);
+    WAM(initial_input, wam);
+    
+    if (strcmp(argv[2], "wam") == 0) {  
+      printMatrix(wam->values, wam->rows, wam->cols);
+    } else {
+      D = (double *) malloc(wam->rows * sizeof(double));
+      assert(D != NULL);
+      DDG(wam, D);
+
+      if (strcmp(argv[2], "ddg") == 0) {
+        prettyDDG(D, wam->rows);
+      } else {
+        lNorm = (matrix_t *) calloc(1, sizeof(matrix_t));
+        assert(lNorm != NULL);
+        
+        DHalf(D, wam->rows);
+        laplacian(wam, D, lNorm);
+        if (strcmp(argv[2], "lnorm") == 0) {
+          printMatrix(lNorm->values, lNorm->rows, lNorm->cols);
+        } 
+        else {
+          if (strcmp(argv[2], "spk") == 0) {
+            V = (double *) calloc(sqr(initial_input->rows), sizeof(double));
+            assert(V != NULL);
+            eigenArray = malloc(initial_input->rows * sizeof(double));
+            assert(eigenArray != NULL);
+
+            Jacobi(lNorm, V, eigenArray);
+            K = K != 0 ? K : argmax(eigenArray, lNorm->rows);
+            
+            data = (matrix_t *) calloc(1, sizeof(matrix_t));
+            assert(data != NULL);
+            buildT(eigenArray, lNorm->rows, K, V, data);
+
+          
+            centroids = (double *) malloc(sqr(data->cols) * sizeof(double));
+            assert(centroids != NULL);
+            memcpy(centroids, data->values, sqr(data->cols) * sizeof(double));
+
+            kmeansFit(centroids, data->values, data->rows, data->cols, data->cols);
+            printMatrix(centroids, data->cols, data->cols);
+
+            free(V);
+            free(eigenArray);
+            free(data->values);
+            free(data);
+            free(centroids);
+            }
+          }
+        free(lNorm->values);
+        free(lNorm);
+        }
+      free(D);
+      }
+    
+    free(wam);
+    }
+    return 0;
 }
