@@ -48,7 +48,7 @@ void
 Jacobi(matrix_t *input_matrix, double *V, double* eigenArray);
 
 uint32_t 
-argmax(double *eigenArray, uint32_t count);
+argmax(double *eigenArray, uint32_t count, uint32_t *indices);
 
 void 
 buildT(double *eigenArray, uint32_t count,

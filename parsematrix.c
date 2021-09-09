@@ -1,23 +1,19 @@
 #include "parsematrix.h"
 
-void addPointToDataset(matrix_t *dataset, char line[])
+void addPointToDataset(matrix_t *dataset, char* line, uint32_t *datasetMaxLen)
 {
   char *endptr;
-  uint32_t datasetMaxLen = DATASET_INIT_LEN;
   uint32_t i = 0;
 
-  if (dataset->rows == datasetMaxLen - 1 && DATASET_MAX_LEN - 1 > dataset->rows)
+  if (dataset->rows == *datasetMaxLen - 1 && DATASET_MAX_LEN - 1 > dataset->rows)
   {
-    datasetMaxLen = MIN(2 * datasetMaxLen, DATASET_MAX_LEN);
-    dataset->values = (double *)realloc(dataset->values, datasetMaxLen * sizeof(double));
+    *datasetMaxLen = MIN(2 * (*datasetMaxLen), DATASET_MAX_LEN);
+    dataset->values = (double *)realloc(dataset->values, *datasetMaxLen * dataset->cols * sizeof(double));
     assert(dataset->values != NULL);
-    {
-      
-    }
   }
 
   endptr = line;
-  for (i = 0; i < (*dataset).cols; i++)
+  for (i = 0; i < dataset->cols; i++)
   {
     dataset->values[dataset->rows * dataset->cols + i] = strtod(endptr, &endptr);
     endptr++;
@@ -42,11 +38,12 @@ void parseFile(char *in_file, matrix_t *dataset)
   uint32_t firstline = 1;
   char line[LINE_MAX_LEN] = "";
   uint32_t i = 0;
+  uint32_t datasetMaxLen = DATASET_INIT_LEN;
 
   dataset->cols = 1;
   dataset->rows = 0;
 
-  while (EOF != fscanf(fp, "%s\n", line) && (*line) != EOF)
+  while (NULL != fgets(line, LINE_MAX_LEN, fp) && (*line) != EOF)
   {
     if (firstline)
     {
@@ -61,7 +58,7 @@ void parseFile(char *in_file, matrix_t *dataset)
       dataset->values = calloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
       assert(dataset->values != NULL);
     }
-    addPointToDataset(dataset, line);
+    addPointToDataset(dataset, line, &datasetMaxLen);
   }
 
   shrinkDataset(dataset);

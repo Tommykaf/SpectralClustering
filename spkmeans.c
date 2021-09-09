@@ -265,13 +265,14 @@ void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
 }
 
 /* Eigengap hurestic*/
-uint32_t argmax(double *eigenArray, uint32_t count)
+uint32_t argmax(double *eigenArray, uint32_t count, uint32_t *indices)
 {
   uint32_t i, k = 0;
   double tmp, delta = -1.0;
+
   for (i = 0; i < count / 2; i++)
   {
-    if ((tmp = fabs(eigenArray[i] - eigenArray[i + 1])) > delta)
+    if ((tmp = fabs(eigenArray[indices[i]] - eigenArray[indices[i + 1]])) > delta)
     {
       delta = tmp;
       k = i+1;
@@ -315,14 +316,15 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
 }
 
 matrix_t *prepareData(matrix_t *points, uint32_t k){
-  int obsCount = points->rows;
+  uint32_t obsCount = points->rows;
   matrix_t *wam = (matrix_t *) malloc(sizeof(matrix_t));
   matrix_t *LNorm = (matrix_t *) malloc(sizeof(matrix_t));
   matrix_t *DATA = (matrix_t *) malloc(sizeof(matrix_t));
   double *D = (double *) malloc(obsCount * sizeof(double));
   double *V = (double *) calloc(sqr(obsCount), sizeof(double));
   double *eigenArray = (double *) malloc(obsCount * sizeof(double));
-
+  uint32_t *indices = (uint32_t*) calloc(obsCount, sizeof(uint32_t));
+  
   /* wam */
   WAM(points, wam);
   /* ddg + dhalf */
@@ -333,7 +335,8 @@ matrix_t *prepareData(matrix_t *points, uint32_t k){
   /* jacob */
   Jacobi(LNorm, V, eigenArray);
   /* build T */
-  k = k != 0 ? k : argmax(eigenArray, obsCount); /* if k is 0 we do the hueristic */
+  heapSort(eigenArray, obsCount, indices, obsCount);
+  k = k != 0 ? k : argmax(eigenArray, obsCount, indices); /* if k is 0 we do the hueristic */
   buildT(eigenArray, obsCount, k, V, DATA);
 
   free(wam->values);
@@ -343,6 +346,7 @@ matrix_t *prepareData(matrix_t *points, uint32_t k){
 
   free(D);
   free(eigenArray);
+  free(indices);
   free(V);
 
   return DATA;
@@ -457,6 +461,7 @@ void printMatrix(double* values, uint32_t rows, uint32_t cols)
 
 int main(int argc, char* argv[]) {
   uint32_t K;
+  uint32_t *indices;
   matrix_t *initial_input, *wam, *lNorm, *data;
   double *eigenArray, *V, *D, *centroids;
 
@@ -517,9 +522,12 @@ int main(int argc, char* argv[]) {
             assert(V != NULL);
             eigenArray = malloc(initial_input->rows * sizeof(double));
             assert(eigenArray != NULL);
+            indices = (uint32_t*) calloc(initial_input->rows, sizeof(uint32_t));
+            assert(indices != NULL);
 
             Jacobi(lNorm, V, eigenArray);
-            K = K != 0 ? K : argmax(eigenArray, lNorm->rows);
+            heapSort(eigenArray, lNorm->rows, indices, lNorm->rows);
+            K = K != 0 ? K : argmax(eigenArray, lNorm->rows, indices);
             
             data = (matrix_t *) calloc(1, sizeof(matrix_t));
             assert(data != NULL);
@@ -535,6 +543,7 @@ int main(int argc, char* argv[]) {
 
             free(V);
             free(eigenArray);
+            free(indices);
             free(data->values);
             free(data);
             free(centroids);
