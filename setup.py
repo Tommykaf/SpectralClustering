@@ -48,7 +48,8 @@ setup(
             # the files to compile into our module relative to ``setup.py``
             ['spkmeansmodule.c',
             'spkmeans.c',
-            'heap.c'],
+            'heap.c',
+            'parsematrix.c'],
             
             include_dirs=[numpy.get_include()]
         ),
