@@ -79,4 +79,4 @@ kmeansFit(double *centroids, double *datapoints,
     uint32_t clusterCount);
 
 void 
-printMatrix(double values, uint32_t rows, uint32_t cols);
+printMatrix(double *values, uint32_t rows, uint32_t cols);
