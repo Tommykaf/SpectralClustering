@@ -13,4 +13,4 @@
 
 void addPointToDataset(matrix_t* dataset, char line[], unsigned int * datasetMaxLen);
 void shrinkDataset(matrix_t* dataset);
-void parseFile(FILE *in_file, matrix_t* dataset);
+void parseFile(char *in_file, matrix_t* dataset);
