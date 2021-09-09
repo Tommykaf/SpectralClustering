@@ -226,8 +226,6 @@ void Jacobi(double *matrix, uint32_t rows, double *V, double *eigenArray)
     matrix[j * rows + i] = 0;
 
     diff += 2 * sqr(aij);
-    // diff -= (sqr(aii) + sqr(ajj));
-    // diff += sqr(matrix[i * (rows + 1)]) + sqr(matrix[j * (rows + 1)]);
   }
   for (r = 0; r < rows; r++)
   {
