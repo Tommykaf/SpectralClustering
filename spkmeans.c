@@ -419,3 +419,16 @@ void printMatrix(double *matrix, uint32_t rows, uint32_t cols)
       printf("\n");
   }
 }
+
+int main(int argc, char* argv[]) {
+  uint32_t K;
+  matrix_t *initial_input;
+
+  assert(argc == 4);
+  K = atoi(argv[1]);
+  initial_input = (matrix_t *) calloc(1, sizeof(matrix_t));
+
+  parseFile(argv[3], initial_input);
+
+  return 0;
+}
