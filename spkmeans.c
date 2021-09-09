@@ -431,18 +431,18 @@ double *kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
   return centroids;
 }
 
-void printMatrix(matrix_t *matrix)
+void printMatrix(double* values, uint32_t rows, uint32_t cols);
 {
   uint32_t i, j;
-  for (i = 0; i < matrix->rows; i++)
+  for (i = 0; i < rows; i++)
   {
-    for (j = 0; j < matrix->cols; j++)
+    for (j = 0; j < cols; j++)
     {
-      printf("%.4f", matrix->values[i * matrix->cols + j]);
-      if (j < matrix->cols - 1)
+      printf("%.4f", values[i * cols + j]);
+      if (j < cols - 1)
         printf(",");
     }
-    if (i + 1 < matrix->rows)
+    if (i + 1 < rows)
       /* if not last row - tommy 2021 */
       printf("\n");
   }
