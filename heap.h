@@ -21,6 +21,9 @@ void swap(element *, element *);
 
 void heapify(element *, uint32_t, uint32_t);
 
+element 
+extractMin(element *heap, uint32_t len);
+
 void heapSort(double *vals, uint32_t len, uint32_t *ret, uint32_t k);
 
 #endif

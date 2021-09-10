@@ -15,16 +15,15 @@ static PyObject *py_WAM(PyObject *self, PyObject *args)
   PyArrayObject *res;
   PyArrayObject *datapoints;
   npy_intp i = 0, j = 0;
-  matrix_t *datapoints_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
-  matrix_t * res_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *datapoints_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
+  matrix_t *res_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
 
   if (!PyArg_ParseTuple(args, "OII:wam_wrapper", &input_datapoints, &datapoints_c->rows, &datapoints_c->cols))
   {
     return NULL;
   }
 
-  datapoints_c->values = (double *) safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
-
+  datapoints_c->values = (double *)safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
 
   dimensions[0] = datapoints_c->rows;
   dimensions[1] = datapoints_c->rows;
@@ -61,24 +60,23 @@ static PyObject *py_WAM(PyObject *self, PyObject *args)
 static PyObject *py_DDG(PyObject *self, PyObject *args)
 {
   npy_intp dimensions[2];
-  matrix_t *datapoints_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
-  matrix_t *wam_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *datapoints_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
+  matrix_t *wam_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
   double *ddg_c, *res_c;
   PyObject *input_datapoints;
   PyArrayObject *res;
   PyArrayObject *datapoints;
   npy_intp i = 0, j = 0;
 
-
   if (!PyArg_ParseTuple(args, "OII:wam_wrapper", &input_datapoints, &datapoints_c->rows, &datapoints_c->cols))
   {
     return NULL;
   }
 
-  datapoints_c->values = (double *) safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
-  wam_c->values = (double *) safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
-  res_c = (double *) safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
-  ddg_c = (double *) safeCalloc(datapoints_c->rows, sizeof(double));
+  datapoints_c->values = (double *)safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
+  wam_c->values = (double *)safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
+  res_c = (double *)safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
+  ddg_c = (double *)safeCalloc(datapoints_c->rows, sizeof(double));
 
   dimensions[0] = datapoints_c->rows;
   dimensions[1] = datapoints_c->rows;
@@ -123,26 +121,25 @@ static PyObject *py_DDG(PyObject *self, PyObject *args)
 static PyObject *py_lNorm(PyObject *self, PyObject *args)
 {
   npy_intp dimensions[2];
-  matrix_t *datapoints_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
-  matrix_t *wam_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
-  matrix_t *res_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *datapoints_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
+  matrix_t *wam_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
+  matrix_t *res_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
   double *ddg_c;
   PyObject *input_datapoints;
   PyArrayObject *res;
   PyArrayObject *datapoints;
   npy_intp i = 0, j = 0;
 
-
   if (!PyArg_ParseTuple(args, "OII:wam_wrapper", &input_datapoints, &datapoints_c->rows, &datapoints_c->cols))
   {
     return NULL;
   }
 
-  datapoints_c->values = (double *) safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
-  wam_c->values = (double *) safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
-  res_c->values = (double *) safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
-  ddg_c = (double *) safeCalloc(datapoints_c->rows, sizeof(double));
-  
+  datapoints_c->values = (double *)safeMalloc(datapoints_c->rows * datapoints_c->cols * sizeof(double));
+  wam_c->values = (double *)safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
+  res_c->values = (double *)safeCalloc(datapoints_c->rows, datapoints_c->rows * sizeof(double));
+  ddg_c = (double *)safeCalloc(datapoints_c->rows, sizeof(double));
+
   dimensions[0] = datapoints_c->rows;
   dimensions[1] = datapoints_c->rows;
 
@@ -199,8 +196,8 @@ static PyObject *py_fit(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  centroids_c = (double *) safeCalloc(clusterCount, dim * sizeof(double));
-  datapoints_c = (double *) safeCalloc(datasetSize, dim * sizeof(double));
+  centroids_c = (double *)safeCalloc(clusterCount, dim * sizeof(double));
+  datapoints_c = (double *)safeCalloc(datasetSize, dim * sizeof(double));
 
   dimensions[0] = clusterCount;
   dimensions[1] = dim;
@@ -247,7 +244,7 @@ static PyObject *py_jacobi(PyObject *self, PyObject *args)
   npy_intp dimensions[2];
   npy_intp eigenCount[1];
   double *V_c, *eigenArray_c;
-  matrix_t *matrix_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *matrix_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
   PyObject *input_matrix;
   PyArrayObject *V;
   PyArrayObject *matrix;
@@ -261,9 +258,9 @@ static PyObject *py_jacobi(PyObject *self, PyObject *args)
 
   matrix_c->cols = matrix_c->rows;
 
-  matrix_c->values = (double *) safeCalloc(matrix_c->rows, matrix_c->cols * sizeof(double));
-  V_c = (double *) safeCalloc(matrix_c->rows, matrix_c->cols * sizeof(double));
-  eigenArray_c = (double *) safeCalloc(matrix_c->rows, sizeof(double));
+  matrix_c->values = (double *)safeCalloc(matrix_c->rows, matrix_c->cols * sizeof(double));
+  V_c = (double *)safeCalloc(matrix_c->rows, matrix_c->cols * sizeof(double));
+  eigenArray_c = (double *)safeCalloc(matrix_c->rows, sizeof(double));
 
   dimensions[0] = matrix_c->rows;
   dimensions[1] = matrix_c->rows;
@@ -304,8 +301,8 @@ static PyObject *py_prepate_data(PyObject *self, PyObject *args)
 {
   uint32_t k;
   npy_intp dimensions[2];
-  matrix_t *datapoints_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
-  matrix_t *res_c = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *datapoints_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
+  matrix_t *res_c = (matrix_t *)safeMalloc(sizeof(matrix_t));
   PyObject *input_datapoints;
   PyArrayObject *res;
   PyArrayObject *datapoints;
@@ -316,7 +313,7 @@ static PyObject *py_prepate_data(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  datapoints_c->values = (double *) safeCalloc(datapoints_c->rows, datapoints_c->cols * sizeof(double));
+  datapoints_c->values = (double *)safeCalloc(datapoints_c->rows, datapoints_c->cols * sizeof(double));
 
   datapoints = (PyArrayObject *)PyArray_ContiguousFromObject(input_datapoints, NPY_DOUBLE, 2, 2);
 
@@ -342,7 +339,7 @@ static PyObject *py_prepate_data(PyObject *self, PyObject *args)
   memcpy(PyArray_DATA(res), res_c->values, sizeof(double) * res_c->rows * res_c->cols);
 
   Py_DECREF(datapoints);
-  
+
   free(datapoints_c->values);
   free(datapoints_c);
   free(res_c->values);

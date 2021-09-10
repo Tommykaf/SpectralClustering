@@ -1,6 +1,6 @@
 #include "parsematrix.h"
 
-void addPointToDataset(matrix_t *dataset, char* line, uint32_t *datasetMaxLen)
+void addPointToDataset(matrix_t *dataset, char *line, uint32_t *datasetMaxLen)
 {
   char *endptr;
   uint32_t i = 0;
@@ -55,7 +55,7 @@ void parseFile(char *in_file, matrix_t *dataset)
           (*dataset).cols++;
         }
       }
-      dataset->values = (double *) safeCalloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
+      dataset->values = (double *)safeCalloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
     }
     addPointToDataset(dataset, line, &datasetMaxLen);
   }
