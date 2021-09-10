@@ -10,6 +10,7 @@
 
 #include "heap.h"
 #include "parsematrix.h"
+#include "safelib.h"
 
 #include "matrix.h"
 

@@ -49,7 +49,8 @@ setup(
             ['spkmeansmodule.c',
             'spkmeans.c',
             'heap.c',
-            'parsematrix.c'],
+            'parsematrix.c',
+            'safelib.c'],
             
             include_dirs=[numpy.get_include()]
         ),

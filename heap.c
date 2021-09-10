@@ -43,10 +43,8 @@ element extractMin(element* heap, uint32_t len){
 }
 
 void heapSort(double* vals, uint32_t len, uint32_t *ret, uint32_t k){
-  element *heap = (element*) calloc(len, sizeof(element));
+  element *heap = (element*) safeCalloc(len, sizeof(element));
   uint32_t i;
-
-  assert(heap != NULL);
 
   for(i = 0; i < len; i++){
     heap[i].index = i;

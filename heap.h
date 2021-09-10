@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "safelib.h"
+
 #ifndef HEAP_H
 #define HEAP_H
 

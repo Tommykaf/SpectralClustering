@@ -47,8 +47,7 @@ void WAM(matrix_t *matrix, matrix_t *res)
   res->cols = obsCount;
   res->rows = obsCount;
 
-  res->values = malloc(res->rows * res->cols * sizeof(double));
-  assert(res->values != NULL);
+  res->values = (double *) safeMalloc(res->rows * res->cols * sizeof(double));
 
   for (i = 0; i < obsCount; i++)
   {
@@ -119,15 +118,14 @@ args:
 */
 void prettyDDG(double *DDG, uint32_t obsCount)
 {
-  matrix_t * pretty = malloc(sizeof(matrix_t));
+  matrix_t *pretty = (matrix_t *) safeMalloc(sizeof(matrix_t));
 
   uint32_t i;
 
   pretty->cols = obsCount;
   pretty->rows = obsCount;
 
-  pretty->values = calloc(obsCount * obsCount, sizeof(double));
-  assert(pretty != NULL && pretty->values != NULL);
+  pretty->values = (double *) safeCalloc(obsCount * obsCount, sizeof(double));
 
   for (i = 0; i < pretty->rows; i++)
   {
@@ -156,8 +154,7 @@ void laplacian(matrix_t *WAM, double *DHalf, matrix_t *LNorm)
   LNorm->rows = WAM->rows;
   LNorm->cols = WAM->cols;
 
-  LNorm->values = malloc(sqr(LNorm->rows) * sizeof(double));
-  assert(LNorm->values != NULL);
+  LNorm->values = (double *) safeMalloc(sqr(LNorm->rows) * sizeof(double));
 
   for (i = 0; i < LNorm->rows; i++)
   {
@@ -217,7 +214,6 @@ void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
 
   while (diff > EPSILON && count++ < MAX_JACOBI_ITER)
   {
-   /* printf("c = %d, d = %.15f\n", count, diff);*/
     diff = 0;
     maxItem(input_matrix, &j, &i);
     aij = matrix[i * rows + j]; /* The Max off diag */
@@ -284,18 +280,16 @@ uint32_t argmax(double *eigenArray, uint32_t count, uint32_t *indices)
 /* build Eigenvector matrix, ret must be initialized */
 void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t *ret){
   uint32_t i, j;
-  uint32_t *indices = malloc(sizeof(uint32_t) * k);
+  uint32_t *indices = (uint32_t *) safeMalloc(sizeof(uint32_t) * k);
   double len;
 
-  assert(indices != NULL);
 
   heapSort(eigenArray, count, indices, k);
   /* indices now contains the k first eigenValues indices */
   ret->rows = count;
   ret->cols = k;
 
-  ret->values = malloc(sizeof(double) * k * count); /* n by k */
-  assert(ret->values != NULL);
+  ret->values = (double *) safeMalloc(sizeof(double) * k * count); /* n by k */
 
   for (i = 0; i < k; i++)
   {
@@ -311,20 +305,19 @@ void buildT(double *eigenArray, uint32_t count, uint32_t k, double* V, matrix_t 
   {
     len = vectorLength(ret->cols, &ret->values[i*ret->cols]);
     normalize(ret->cols, &(ret->values[i*ret->cols]), len);
-    printMatrix(&ret->values[i*ret->cols], 1, k);
   }
   free(indices);
 }
 
 matrix_t *prepareData(matrix_t *points, uint32_t k){
   uint32_t obsCount = points->rows;
-  matrix_t *wam = (matrix_t *) malloc(sizeof(matrix_t));
-  matrix_t *LNorm = (matrix_t *) malloc(sizeof(matrix_t));
-  matrix_t *DATA = (matrix_t *) malloc(sizeof(matrix_t));
-  double *D = (double *) malloc(obsCount * sizeof(double));
-  double *V = (double *) calloc(sqr(obsCount), sizeof(double));
-  double *eigenArray = (double *) malloc(obsCount * sizeof(double));
-  uint32_t *indices = (uint32_t*) calloc(obsCount, sizeof(uint32_t));
+  matrix_t *wam = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *LNorm = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  matrix_t *DATA = (matrix_t *) safeMalloc(sizeof(matrix_t));
+  double *D = (double *) safeMalloc(obsCount * sizeof(double));
+  double *V = (double *) safeCalloc(sqr(obsCount), sizeof(double));
+  double *eigenArray = (double *) safeMalloc(obsCount * sizeof(double));
+  uint32_t *indices = (uint32_t*) safeCalloc(obsCount, sizeof(uint32_t));
   
   /* wam */
   WAM(points, wam);
@@ -417,10 +410,9 @@ void kmeansFit(double *centroids, double *datapoints, uint32_t datasetSize,
 {
   uint32_t i;
 
-  double *newCentroids = calloc(clusterCount, dim * sizeof(double));
-  uint32_t *count = calloc(clusterCount, sizeof(int));
+  double *newCentroids = (double *) safeCalloc(clusterCount, dim * sizeof(double));
+  uint32_t *count = (uint32_t *) safeCalloc(clusterCount, sizeof(int));
   
-  assert(newCentroids != NULL && count != NULL);
 
   for (i = 0; i < MAX_KMEANS_ITER; i++)
   {
@@ -468,8 +460,7 @@ int main(int argc, char* argv[]) {
 
   assert(argc == 4);
   K = atoi(argv[1]);
-  initial_input = (matrix_t *) calloc(1, sizeof(matrix_t));
-  assert(initial_input != NULL);
+  initial_input = (matrix_t *) safeCalloc(1, sizeof(matrix_t));
 
   assert(strcmp(argv[2], "jacobi") == 0 || 
         strcmp(argv[2], "wam") == 0||
@@ -481,10 +472,8 @@ int main(int argc, char* argv[]) {
   parseFile(argv[3], initial_input);
 
   if (strcmp(argv[2], "jacobi") == 0) {
-    V = (double *) calloc(sqr(initial_input->rows), sizeof(double));
-    assert(V != NULL);
-    eigenArray = malloc(initial_input->rows * sizeof(double));
-    assert(eigenArray != NULL);
+    V = (double *) safeCalloc(sqr(initial_input->rows), sizeof(double));
+    eigenArray = (double *) safeMalloc(initial_input->rows * sizeof(double));
     Jacobi(initial_input, V, eigenArray);
 
     printMatrix(eigenArray, 1, initial_input->rows);
@@ -495,22 +484,19 @@ int main(int argc, char* argv[]) {
     free(eigenArray);
 
   } else {
-    wam = (matrix_t *) calloc(1, sizeof(matrix_t));
-    assert(wam != NULL);
+    wam = (matrix_t *) safeCalloc(1, sizeof(matrix_t));
     WAM(initial_input, wam);
     
     if (strcmp(argv[2], "wam") == 0) {  
       printMatrix(wam->values, wam->rows, wam->cols);
     } else {
-      D = (double *) malloc(wam->rows * sizeof(double));
-      assert(D != NULL);
+      D = (double *) safeMalloc(wam->rows * sizeof(double));
       DDG(wam, D);
 
       if (strcmp(argv[2], "ddg") == 0) {
         prettyDDG(D, wam->rows);
       } else {
-        lNorm = (matrix_t *) calloc(1, sizeof(matrix_t));
-        assert(lNorm != NULL);
+        lNorm = (matrix_t *) safeCalloc(1, sizeof(matrix_t));
         
         DHalf(D, wam->rows);
         laplacian(wam, D, lNorm);
@@ -519,24 +505,19 @@ int main(int argc, char* argv[]) {
         } 
         else {
           if (strcmp(argv[2], "spk") == 0) {
-            V = (double *) calloc(sqr(initial_input->rows), sizeof(double));
-            assert(V != NULL);
-            eigenArray = malloc(initial_input->rows * sizeof(double));
-            assert(eigenArray != NULL);
-            indices = (uint32_t*) calloc(initial_input->rows, sizeof(uint32_t));
-            assert(indices != NULL);
+            V = (double *) safeCalloc(sqr(initial_input->rows), sizeof(double));
+            eigenArray = (double*) safeMalloc(initial_input->rows * sizeof(double));
+            indices = (uint32_t*) safeCalloc(initial_input->rows, sizeof(uint32_t));
 
             Jacobi(lNorm, V, eigenArray);
             heapSort(eigenArray, lNorm->rows, indices, lNorm->rows);
             K = K != 0 ? K : argmax(eigenArray, lNorm->rows, indices);
             
-            data = (matrix_t *) calloc(1, sizeof(matrix_t));
-            assert(data != NULL);
+            data = (matrix_t *) safeCalloc(1, sizeof(matrix_t));
             buildT(eigenArray, lNorm->rows, K, V, data);
 
           
-            centroids = (double *) malloc(sqr(data->cols) * sizeof(double));
-            assert(centroids != NULL);
+            centroids = (double *) safeMalloc(sqr(data->cols) * sizeof(double));
             memcpy(centroids, data->values, sqr(data->cols) * sizeof(double));
 
             kmeansFit(centroids, data->values, data->rows, data->cols, data->cols);

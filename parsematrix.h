@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include "safelib.h"
 #include "matrix.h"
 
 void addPointToDataset(matrix_t* dataset, char* line, uint32_t *datasetMaxLen);

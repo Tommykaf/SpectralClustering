@@ -55,8 +55,7 @@ void parseFile(char *in_file, matrix_t *dataset)
           (*dataset).cols++;
         }
       }
-      dataset->values = calloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
-      assert(dataset->values != NULL);
+      dataset->values = (double *) safeCalloc(DATASET_INIT_LEN, dataset->cols * sizeof(double));
     }
     addPointToDataset(dataset, line, &datasetMaxLen);
   }
