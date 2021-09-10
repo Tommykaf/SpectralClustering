@@ -176,13 +176,13 @@ args:
 */
 void maxItem(matrix_t *matrix, uint32_t *row, uint32_t *col)
 {
-  uint32_t i, j, currI = 1, currJ = 0;
-  double tmp, currMax = fabs(matrix->values[currJ + currI * matrix->rows]);
-  for (i = 1; i < matrix->rows; i++)
+  uint32_t i, j, currI = 0, currJ = 1;
+  double tmp, currMax = fabs(matrix->values[currJ + currI * matrix->cols]);
+  for (j = 1; j < matrix->rows; j++)
   {
-    for (j = 0; j < i; j++)
+    for (i = 0; i < j; i++)
     {
-      if ((tmp = fabs(matrix->values[j + i * matrix->rows])) > currMax)
+      if ((tmp = fabs(matrix->values[j + i * matrix->cols])) > currMax)
       {
         currI = i;
         currJ = j;
@@ -213,7 +213,7 @@ void Jacobi(matrix_t *input_matrix, double *V, double *eigenArray)
   while (diff > EPSILON && count++ < MAX_JACOBI_ITER)
   {
     diff = 0;
-    maxItem(input_matrix, &j, &i);
+    maxItem(input_matrix, &i, &j);
     aij = matrix[i * rows + j]; /* The Max off diag */
     aii = matrix[i * (rows + 1)];
     ajj = matrix[j * (rows + 1)];
